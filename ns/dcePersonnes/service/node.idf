@@ -7,7 +7,16 @@
   <value name="node_pkg">dcePersonnes</value>
   <value name="is_public">false</value>
   <value name="encodeutf8">true</value>
-  <value name="shared"></value>
+  <value name="shared">CnByaXZhdGUgc3RhdGljIHZvaWQgZGVsZXRlUmVjdXJzaXZlbHkoRmlsZSBmaWxlKSB0aHJvd3Mg
+U2VydmljZUV4Y2VwdGlvbiB7CiAgICBpZiAoIWZpbGUuZXhpc3RzKCkpIHJldHVybjsKCiAgICBp
+ZiAoZmlsZS5pc0RpcmVjdG9yeSgpKSB7CiAgICAgICAgZm9yIChGaWxlIGNoaWxkIDogZmlsZS5s
+aXN0RmlsZXMoKSkgewogICAgICAgICAgICBkZWxldGVSZWN1cnNpdmVseShjaGlsZCk7CiAgICAg
+ICAgfQogICAgfQoKICAgIFN5c3RlbS5nYygpOwoKICAgIGlmICghZmlsZS5kZWxldGUoKSkgewog
+ICAgICAgIHRyeSB7CiAgICAgICAgICAgIHRocm93IG5ldyBTZXJ2aWNlRXhjZXB0aW9uKCJJbXBv
+c3NpYmxlIGRlIHN1cHByaW1lciAiICsgZmlsZS5nZXRDYW5vbmljYWxQYXRoKCkpOwogICAgICAg
+IH0gY2F0Y2ggKElPRXhjZXB0aW9uIGUpIHsKICAgICAgICAJdGhyb3cgbmV3IFNlcnZpY2VFeGNl
+cHRpb24oIkVycmV1ciBsb3JzIGRlIGwnb2J0ZW50aW9uIGR1IGNoZW1pbiBjYW5vbmlxdWUgcG91
+ciAiICsgZmlsZSk7CiAgICAgICAgfQogICAgfQp9</value>
   <value name="extends"></value>
   <array name="implements" type="value" depth="1">
   </array>

@@ -81,6 +81,35 @@ public final class service
 
 
 
+	public static final void supprimeRepertoire (IData pipeline)
+        throws ServiceException
+	{
+		// --- <<IS-START(supprimeRepertoire)>> ---
+		// @sigtype java 3.5
+		// [i] field:0:required chemin
+		// pipeline
+		IDataCursor pipelineCursor = pipeline.getCursor();
+			String	chemin = IDataUtil.getString( pipelineCursor, "chemin" );
+		pipelineCursor.destroy();
+		// pipeline
+		
+		String directoryPath = chemin;
+		File dir = new File(directoryPath);
+		
+		if (dir.exists()) {
+		    deleteRecursively(dir);
+		} else {
+		    throw new ServiceException("Le r\u00E9pertoire sp\u00E9cifi\u00E9 n'existe pas.");
+		}
+		
+			
+		// --- <<IS-END>> ---
+
+                
+	}
+
+
+
 	public static final void zippeRepertoire (IData pipeline)
         throws ServiceException
 	{
@@ -162,5 +191,28 @@ public final class service
 
                 
 	}
+
+	// --- <<IS-START-SHARED>> ---
+	
+	private static void deleteRecursively(File file) throws ServiceException {
+	    if (!file.exists()) return;
+	
+	    if (file.isDirectory()) {
+	        for (File child : file.listFiles()) {
+	            deleteRecursively(child);
+	        }
+	    }
+	
+	    System.gc();
+	
+	    if (!file.delete()) {
+	        try {
+	            throw new ServiceException("Impossible de supprimer " + file.getCanonicalPath());
+	        } catch (IOException e) {
+	        	throw new ServiceException("Erreur lors de l'obtention du chemin canonique pour " + file);
+	        }
+	    }
+	}
+	// --- <<IS-END-SHARED>> ---
 }
 
