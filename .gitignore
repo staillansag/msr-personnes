@@ -1,0 +1,10 @@
+*.bak
+.env
+
+/.classpath
+/.project
+
+*Secret.yaml
+*ConfigMap.yaml
+
+license
