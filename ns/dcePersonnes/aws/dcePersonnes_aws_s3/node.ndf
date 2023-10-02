@@ -42,9 +42,9 @@
       <value name="pr.followServerRedirects">true</value>
       <value name="pr.allowCircularRedirects">true</value>
       <value name="pr.serverRedirectMax">5</value>
-      <value name="aws.accessKey">AKIAZT6ITD47Q77AUOWR</value>
+      <value name="aws.accessKey"></value>
       <value name="aws.secretKey">dcePersonnes.aws:dcePersonnes_aws_s3.aws.secretKey</value>
-      <value name="aws.region">us-east-1</value>
+      <value name="aws.region"></value>
     </record>
     <array name="passmanHandles" type="value" depth="1">
       <value>dcePersonnes.aws:dcePersonnes_aws_s3.aws.secretKey</value>
