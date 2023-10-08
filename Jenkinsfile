@@ -348,8 +348,12 @@ pipeline {
                                 def newDeploymentFileContent = deploymentFileContent.replaceAll("${imageName}:latest", "${imageName}:${imageVersion}")
                                 writeFile (file: "newDeployment.yaml", text: newDeploymentFileContent)
 
-                                // Get the current deployment version - in case the tests go wrong we will rollback to this version
-                                rollbackVersion = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout history deployment/${imageName} -o jsonpath='{.metadata.generation}'", returnStdout: true)
+                                try {
+                                    // Get the current deployment version - in case the tests go wrong we will rollback to this version
+                                    rollbackVersion = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout history deployment/${imageName} -o jsonpath='{.metadata.generation}'", returnStdout: true)
+                                } catch (Exception e) {
+
+                                }
 
                                 // Apply the microservice configuration
                                 // Note: this config relies on secrets that are not managed by this pipeline, they are part of the namespace / project config
@@ -389,7 +393,11 @@ pipeline {
                 AWS_SECRET_ACCESS_KEY = "${env.AWS_CREDENTIALS_PSW}"
             }
             when {
-                expression { performAWSRollback == "true" }
+                allOf {
+                    expression { performAWSRollback == "true" }
+                    expression { rollbackVersion.length() != 0 }
+                }
+
             }
             steps{
                 script {
