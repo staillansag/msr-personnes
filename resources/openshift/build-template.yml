@@ -1,0 +1,95 @@
+####
+#
+# Openshift template.
+#
+# This template create a BuildConfig file, that build bc-${IMAGE_NAME}-${IMAGE_NAME}
+# image, from Gitlab repository 
+#
+# This template also add labels on this image (for exemple release date, maintainer contact, "see labels" section)
+#
+# Use it with oc process, passing parameters using '-p' options, it will generate a BuildConfig that you can apply.
+#
+# Parameters are listed at the end of this file.
+#
+####
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  build-template: dck_image-template
+message: "Build template for EDF's DevOps / CaaS integration dck_image-template"
+metadata:
+  annotations:
+    description: "Build template for EDF's DevOps / CaaS integration dck_image-template"
+  creationTimestamp: null
+  name: dck_image-template
+objects:
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: bc-${IMAGE_NAME}
+      name: bc-${IMAGE_NAME}
+    spec:
+      nodeSelector: null
+      failedBuildsHistoryLimit: 3
+      successfulBuildsHistoryLimit: 2
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${IMAGE_NAME}:${IMAGE_RELEASE_NUMBER}
+        imageLabels:
+          - name: "fr.edf.project.image.name"
+            value: "${IMAGE_NAME}"
+          - name: "fr.edf.project.image.version"
+            value: "${IMAGE_RELEASE_NUMBER}"
+          - name: "fr.edf.project.release.date"
+            value: "${IMAGE_RELEASE_DATE}"
+          - name: "fr.edf.project.release.number"
+            value: "${IMAGE_RELEASE_NUMBER}"
+          - name: fr.edf.project.maintainer
+            value: "${MAINTAINER_EMAIL}"
+          - name: description
+            value: "${IMAGE_NAME}"
+      postCommit: {}
+      resources: {}
+      runPolicy: Serial
+      source:
+        git:
+          ref: "${GIT_BRANCH}"
+          uri: ${GIT_URL}
+        type: Git
+        contextDir: "."
+      strategy:
+        dockerStrategy:
+          dockerfilePath: Dockerfile
+          forcePull: true
+          noCache: true
+          from:
+            kind: ImageStreamTag
+            name: ${FROM_IMAGE}
+            namespace: ${FROM_NAMESPACE}
+        type: Docker
+      triggers:
+        - imageChange:
+          type: ImageChange
+    status:
+      lastVersion: 0
+parameters:
+  - name: IMAGE_NAME
+    required: true
+  - name: GIT_BRANCH
+    required: true
+  - name: IMAGE_RELEASE_DATE
+    required: true
+  - name: IMAGE_RELEASE_NUMBER
+    required: true
+  - name: GIT_URL
+    required: true
+  - name: FROM_NAMESPACE
+    required: true
+  - name: FROM_IMAGE
+    required: true
+  - name: MAINTAINER_EMAIL
+    required: true
