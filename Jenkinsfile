@@ -149,7 +149,7 @@ pipeline {
                             "-p", "IMAGE_RELEASE_NUMBER='${env.BUILD_NUMBER}'",
                             "-p", "FROM_IMAGE='${fromImage}'",
                             "-p", "FROM_NAMESPACE='${fromNamespace}'",
-                            "-p", "MAINTAINER_EMAIL='${maintainerEmail}'"
+                            "-p", "MAINTAINER_EMAIL='${maintainerEmail}'")
 
                             println "[INFO] - Generated build template:"
                             print processedTemplate
