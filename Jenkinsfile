@@ -68,6 +68,7 @@ pipeline {
                     imageName = myParameters.parameters.IMAGE_NAME.trim()
                     maintainerEmail = myParameters.parameters.MAINTAINER_EMAIL.trim()
                     AWS_ACCOUNT = myParameters.parameters.AWS_ACCOUNT.trim()
+                    routeSubDomain = myParameters.parameters.ROUTE_SUBDOMAIN.trim()
 
                     ecrUri = myParameters.parameters.ECR_URI.trim()
 
@@ -114,6 +115,7 @@ pipeline {
                     if (fromImage.length() == 0
                             || fromNamespace.length() == 0
                             || deployNamespace.length() == 0
+                            || routeSubDomain.length() == 0
                             || imageName.length() == 0
                             || maintainerEmail.length() == 0
                             || imageName.length() == 0
