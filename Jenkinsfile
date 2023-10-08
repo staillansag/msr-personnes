@@ -423,14 +423,15 @@ pipeline {
                                 // Wait for the end of the deployment
                                 sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment ${imageName} --timeout=300s", returnStdout: true)
 
+                            }
                         }
-                    }
 
+                    }
                 }
+
             }
 
         }
-
     }
 
 }
