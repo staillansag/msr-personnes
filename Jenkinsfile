@@ -142,7 +142,7 @@ pipeline {
         //                     /*
         //                     * Load and process template
         //                     */
-        //                     def template = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/build-template.yml"
+        //                     def template = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/build-template.yaml"
         //                     def processedTemplate = openshift.process(template ,
         //                     "-p", "IMAGE_NAME='${imageName}'",
         //                     "-p", "GIT_URL='${env.GIT_URL}'",
@@ -253,9 +253,9 @@ pipeline {
                     openshift.withProject(currentCaasConfig['namespaceName']){
                         openshift.withCredentials(currentCaasConfig['serviceAccountCredentialId']){
 
-                            def templateDep = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/deploy-${imageName}-template.yml"
-                            def templateService = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/service-${imageName}-template.yml"
-                            def templateRoute = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/route-${imageName}-template.yml"
+                            def templateDep = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/deploy-${imageName}-template.yaml"
+                            def templateService = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/service-${imageName}-template.yaml"
+                            def templateRoute = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/route-${imageName}-template.yaml"
 
                             //imageVersion = "${env.BUILD_NUMBER}"
                             imageVersion = "7"
