@@ -399,7 +399,7 @@ pipeline {
                                 sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config set-context ${kubeContext} --namespace=${EKS_NAMESPACE}", returnStdout: true)
 
                                 def imageVersion = "${env.BUILD_NUMBER}"
-                                def deploymentFile = "resources/kubernetes/deploy-msr-personnes.yaml"
+                                def deploymentFile = "resources/kubernetes/deploy-${imageName}.yaml"
                                 def deploymentFileContent = readFile(file: deploymentFile)
                                 def newDeploymentFileContent = deploymentFileContent.replaceAll("${imageName}:latest", "${imageName}:${imageVersion}")
                                 writeFile (file: "newDeployment.yaml", text: newDeploymentFileContent)
