@@ -457,50 +457,55 @@ pipeline {
     post {
         failure {
 
-            // We do a rollback of the OpenShift deployment if instructed by performAWSRollback
-            if (performOpenShiftRollback == 'true' && openShiftRollbackVersion.length() != 0) {
-                println("[INFO] - Rollback to OpenShift deployment version ${openShiftRollbackVersion}")
+            steps{
+                script {
 
-            }
+                    // We do a rollback of the OpenShift deployment if instructed by performAWSRollback
+                    if (performOpenShiftRollback == 'true' && openShiftRollbackVersion.length() != 0) {
+                        println("[INFO] - Rollback to OpenShift deployment version ${openShiftRollbackVersion}")
 
-            // We do a rollback of the AWS deployment if instructed by performAWSRollback
-            if (performAWSRollback == 'true' && awsRollbackVersion.length() != 0) {
-                println("[INFO] - Rollback to AWS deployment version ${awsRollbackVersion}")
+                    }
 
-                wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${CLOUD_ASSUME_ROLE}", var: 'SECRET']]]) {
-                    ROLE = readJSON text: sh(script: "aws sts assume-role --role-arn '${CLOUD_ASSUME_ROLE}' --role-session-name '${AWS_ACCOUNT.replaceAll('-', '_')}'", returnStdout: true)
-                }
+                    // We do a rollback of the AWS deployment if instructed by performAWSRollback
+                    if (performAWSRollback == 'true' && awsRollbackVersion.length() != 0) {
+                        println("[INFO] - Rollback to AWS deployment version ${awsRollbackVersion}")
 
-                ACCESS_KEY_ID = ROLE["Credentials"]["AccessKeyId"]
-                SECRET_ACCESS_KEY = ROLE["Credentials"]["SecretAccessKey"]
-                SESSION_TOKEN = ROLE["Credentials"]["SessionToken"]    
+                        wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${CLOUD_ASSUME_ROLE}", var: 'SECRET']]]) {
+                            ROLE = readJSON text: sh(script: "aws sts assume-role --role-arn '${CLOUD_ASSUME_ROLE}' --role-session-name '${AWS_ACCOUNT.replaceAll('-', '_')}'", returnStdout: true)
+                        }
 
-                // Retrieval of kubeconfig to connect to the EKS cluster
-                wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${ACCESS_KEY_ID}", var: 'SECRET']]]) {
-                    wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SECRET_ACCESS_KEY}", var: 'SECRET']]]) {
-                        wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SESSION_TOKEN}", var: 'SECRET']]]) {
+                        ACCESS_KEY_ID = ROLE["Credentials"]["AccessKeyId"]
+                        SECRET_ACCESS_KEY = ROLE["Credentials"]["SecretAccessKey"]
+                        SESSION_TOKEN = ROLE["Credentials"]["SessionToken"]    
 
-                            // Retrieval of kubeconfig to connect to the EKS cluster
-                            sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && aws eks --region eu-west-1 update-kubeconfig --name exp-cluster", returnStdout: true)
+                        // Retrieval of kubeconfig to connect to the EKS cluster
+                        wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${ACCESS_KEY_ID}", var: 'SECRET']]]) {
+                            wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SECRET_ACCESS_KEY}", var: 'SECRET']]]) {
+                                wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SESSION_TOKEN}", var: 'SECRET']]]) {
 
-                            // Positionning in the desired EKS namespace
-                            def EKS_NAMESPACE = "${deployNamespace}"
-                            kubeContext = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config current-context", returnStdout: true).trim()
-                            sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config set-context ${kubeContext} --namespace=${EKS_NAMESPACE}", returnStdout: true)
+                                    // Retrieval of kubeconfig to connect to the EKS cluster
+                                    sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && aws eks --region eu-west-1 update-kubeconfig --name exp-cluster", returnStdout: true)
 
-                            // Apply the microservice configuration
-                            // Note: this config relies on secrets that are not managed by this pipeline, they are part of the namespace / project config
-                            println("[INFO] - Rollback to revision = ${rollbackVersion}")
-                            sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout undo deployment/${imageName} --to-revision=${rollbackVersion}", returnStdout: true)
+                                    // Positionning in the desired EKS namespace
+                                    def EKS_NAMESPACE = "${deployNamespace}"
+                                    kubeContext = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config current-context", returnStdout: true).trim()
+                                    sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config set-context ${kubeContext} --namespace=${EKS_NAMESPACE}", returnStdout: true)
 
-                            timeout(time: 5, unit: 'MINUTES') {
-                                // Wait for the end of the deployment
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment ${imageName} --timeout=300s", returnStdout: true)
+                                    // Apply the microservice configuration
+                                    // Note: this config relies on secrets that are not managed by this pipeline, they are part of the namespace / project config
+                                    println("[INFO] - Rollback to revision = ${rollbackVersion}")
+                                    sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout undo deployment/${imageName} --to-revision=${rollbackVersion}", returnStdout: true)
+
+                                    timeout(time: 5, unit: 'MINUTES') {
+                                        // Wait for the end of the deployment
+                                        sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment ${imageName} --timeout=300s", returnStdout: true)
+                                    }
+
+                                }
                             }
 
                         }
                     }
-
                 }
 
             }
