@@ -27,6 +27,11 @@ def ACCESS_KEY_ID = ""
 def SECRET_ACCESS_KEY = ""
 def SESSION_TOKEN = ""
 
+def performOpenShiftRollback = "false"
+def openShiftRollbackVersion = ""
+def performAWSRollback = "false"
+def awsRollbackVersion = ""
+
 
 pipeline {
    agent {
@@ -46,6 +51,9 @@ pipeline {
         * Loading and reading JSON configuration file
         */
         stage("Load and check config") {
+            options {
+                timeout(time: 1, unit: 'MINUTES')
+            }
             steps {
                 script {
 
@@ -131,6 +139,9 @@ pipeline {
 
 
         stage('Build') {
+            options {
+                timeout(time: 10, unit: 'MINUTES')
+            }
             steps{
                 script {
                 openshift.withCluster(currentCaasConfig['url']) {
@@ -247,68 +258,73 @@ pipeline {
         }
 
         stage('OpenShift - Deploy') {
+            options {
+                timeout(time: 5, unit: 'MINUTES')
+            }
             steps{
                 script {
-                openshift.withCluster(currentCaasConfig['url']) {
-                    openshift.withProject(currentCaasConfig['namespaceName']){
-                        openshift.withCredentials(currentCaasConfig['serviceAccountCredentialId']){
+                    openshift.withCluster(currentCaasConfig['url']) {
+                        openshift.withProject(currentCaasConfig['namespaceName']){
+                            openshift.withCredentials(currentCaasConfig['serviceAccountCredentialId']){
 
-                            def templateDep = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/deploy-${imageName}-template.yaml"
-                            def templateService = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/service-${imageName}-template.yaml"
-                            def templateRoute = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/route-${imageName}-template.yaml"
+                                def templateDep = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/deploy-${imageName}-template.yaml"
+                                def templateService = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/service-${imageName}-template.yaml"
+                                def templateRoute = readYaml file: "${REPOSITORY_DEPLOYMENT_PREFIX}/route-${imageName}-template.yaml"
 
-                            imageVersion = "${env.BUILD_NUMBER}"
+                                imageVersion = "${env.BUILD_NUMBER}"
 
-                            def processedDepTemplate = openshift.process(templateDep,
-                            "-p", "IMAGE_RELEASE_NUMBER='${imageVersion}'",
-                            "-p", "IMAGE_NAME='${imageName}'",
-                            "-p", "DEPLOY_NAMESPACE='${deployNamespace}'",
-                            "-o", "yaml")
+                                def processedDepTemplate = openshift.process(templateDep,
+                                "-p", "IMAGE_RELEASE_NUMBER='${imageVersion}'",
+                                "-p", "IMAGE_NAME='${imageName}'",
+                                "-p", "DEPLOY_NAMESPACE='${deployNamespace}'",
+                                "-o", "yaml")
 
-                            def processedServiceTemplate = openshift.process(templateService,
-                            "-p", "DEPLOY_NAMESPACE='${deployNamespace}'",
-                            "-p", "IMAGE_NAME='${imageName}'",
-                            "-o", "yaml")
+                                def processedServiceTemplate = openshift.process(templateService,
+                                "-p", "DEPLOY_NAMESPACE='${deployNamespace}'",
+                                "-p", "IMAGE_NAME='${imageName}'",
+                                "-o", "yaml")
 
-                            def processedRouteTemplate = openshift.process(templateRoute,
-                            "-p", "ROUTE_SUBDOMAIN='${routeSubDomain}'",
-                            "-p", "IMAGE_NAME='${imageName}'",
-                            "-p", "DEPLOY_NAMESPACE='${deployNamespace}'",
-                            "-o", "yaml")
+                                def processedRouteTemplate = openshift.process(templateRoute,
+                                "-p", "ROUTE_SUBDOMAIN='${routeSubDomain}'",
+                                "-p", "IMAGE_NAME='${imageName}'",
+                                "-p", "DEPLOY_NAMESPACE='${deployNamespace}'",
+                                "-o", "yaml")
 
-                            /*
-                            * Apply deployment
-                            */
-                            println("[INFO] - Applying new params to deployment ${imageName}")
-                            deploymentResult = openshift.apply(processedDepTemplate)
-                            println("[INFO] - new params to deployment ${imageName} should be applied")
+                                /*
+                                * Apply deployment
+                                */
+                                println("[INFO] - Applying new params to deployment ${imageName}")
+                                deploymentResult = openshift.apply(processedDepTemplate)
+                                println("[INFO] - new params to deployment ${imageName} should be applied")
 
-                            /*
-                            * Apply Service
-                            */
-                            println("[INFO] - Applying new params to Service ${imageName}")
-                            openshift.apply(processedServiceTemplate)
-                            println("[INFO] - new params to Service ${imageName} should be applied")
+                                /*
+                                * Apply Service
+                                */
+                                println("[INFO] - Applying new params to Service ${imageName}")
+                                openshift.apply(processedServiceTemplate)
+                                println("[INFO] - new params to Service ${imageName} should be applied")
 
-                            /*
-                            * Apply Route
-                            */
-                            println("[INFO] - Applying new params to Route ${imageName}")
-                            openshift.apply(processedRouteTemplate)
-                            println("[INFO] - new params to Route ${imageName} should be applied")
-                            
-                            deploymentResult.rollout().status()
+                                /*
+                                * Apply Route
+                                */
+                                println("[INFO] - Applying new params to Route ${imageName}")
+                                openshift.apply(processedRouteTemplate)
+                                println("[INFO] - new params to Route ${imageName} should be applied")
+                                
+                                deploymentResult.rollout().status()
 
+                            }
                         }
                     }
-                }
                 }
             }
         }
 
 
         stage('AWS - Copy image to ECR') {
-            
+            options {
+                timeout(time: 5, unit: 'MINUTES')
+            }
             environment {
                 AWS_DEFAULT_REGION = 'eu-west-1'
                 NO_PROXY = '*.edf.fr'
@@ -365,6 +381,9 @@ pipeline {
         }
 
         stage('AWS - EKS deployment') {
+            options {
+                timeout(time: 5, unit: 'MINUTES')
+            }
             environment {
                 AWS_DEFAULT_REGION = 'eu-west-1'
                 NO_PROXY = '*.edf.fr'
@@ -406,7 +425,7 @@ pipeline {
 
                                 try {
                                     // Get the current deployment version - in case the tests go wrong we will rollback to this version
-                                    rollbackVersion = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout history deployment/${imageName} -o jsonpath='{.metadata.generation}'", returnStdout: true)
+                                    awsRollbackVersion = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout history deployment/${imageName} -o jsonpath='{.metadata.generation}'", returnStdout: true)
                                 } catch (Exception e) {
 
                                 }
@@ -421,10 +440,8 @@ pipeline {
                                 // Apply the service
                                 sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl apply -f resources/kubernetes/service-${imageName}.yaml", returnStdout: true)
 
-                                timeout(time: 5, unit: 'MINUTES') {
-                                    // Wait for the end of the deployment
-                                    sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment ${imageName} --timeout=300s", returnStdout: true)
-                                }
+                                // Wait for the end of the deployment
+                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment ${imageName} --timeout=300s", returnStdout: true)
 
                             }
                         }
@@ -435,70 +452,62 @@ pipeline {
 
         }
 
+    }
 
-        stage("AWS - Rollback"){
-            environment {
-                AWS_DEFAULT_REGION = 'eu-west-1'
-                NO_PROXY = '*.edf.fr'
-                HTTP_PROXY = 'vip-appli.proxy.edf.fr:3128'
-                HTTPS_PROXY = 'vip-appli.proxy.edf.fr:3128'
-                KUBECONFIG = "/var/lib/jenkins/.kube/config"
-                AWS_CREDENTIALS = credentials("${CLOUD_CREDENTIAL_ID}")
-                AWS_ACCESS_KEY_ID = "${env.AWS_CREDENTIALS_USR}"
-                AWS_SECRET_ACCESS_KEY = "${env.AWS_CREDENTIALS_PSW}"
+    post {
+        failure {
+
+            // We do a rollback of the OpenShift deployment if instructed by performAWSRollback
+            if (performOpenShiftRollback == 'true' && openShiftRollbackVersion.length() != 0) {
+                println("[INFO] - Rollback to OpenShift deployment version ${openShiftRollbackVersion}")
+
             }
-            when {
-                allOf {
-                    expression { performAWSRollback == "true" }
-                    expression { rollbackVersion.length() != 0 }
+
+            // We do a rollback of the AWS deployment if instructed by performAWSRollback
+            if (performAWSRollback == 'true' && awsRollbackVersion.length() != 0) {
+                println("[INFO] - Rollback to AWS deployment version ${awsRollbackVersion}")
+
+                wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${CLOUD_ASSUME_ROLE}", var: 'SECRET']]]) {
+                    ROLE = readJSON text: sh(script: "aws sts assume-role --role-arn '${CLOUD_ASSUME_ROLE}' --role-session-name '${AWS_ACCOUNT.replaceAll('-', '_')}'", returnStdout: true)
                 }
 
-            }
-            steps{
-                script {
+                ACCESS_KEY_ID = ROLE["Credentials"]["AccessKeyId"]
+                SECRET_ACCESS_KEY = ROLE["Credentials"]["SecretAccessKey"]
+                SESSION_TOKEN = ROLE["Credentials"]["SessionToken"]    
 
-                    println("[INFO] - performAWSRollback = ${performAWSRollback}")
+                // Retrieval of kubeconfig to connect to the EKS cluster
+                wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${ACCESS_KEY_ID}", var: 'SECRET']]]) {
+                    wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SECRET_ACCESS_KEY}", var: 'SECRET']]]) {
+                        wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SESSION_TOKEN}", var: 'SECRET']]]) {
 
-                    wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${CLOUD_ASSUME_ROLE}", var: 'SECRET']]]) {
-                        ROLE = readJSON text: sh(script: "aws sts assume-role --role-arn '${CLOUD_ASSUME_ROLE}' --role-session-name '${AWS_ACCOUNT.replaceAll('-', '_')}'", returnStdout: true)
-                    }
+                            // Retrieval of kubeconfig to connect to the EKS cluster
+                            sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && aws eks --region eu-west-1 update-kubeconfig --name exp-cluster", returnStdout: true)
 
-                    ACCESS_KEY_ID = ROLE["Credentials"]["AccessKeyId"]
-                    SECRET_ACCESS_KEY = ROLE["Credentials"]["SecretAccessKey"]
-                    SESSION_TOKEN = ROLE["Credentials"]["SessionToken"]    
+                            // Positionning in the desired EKS namespace
+                            def EKS_NAMESPACE = "${deployNamespace}"
+                            kubeContext = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config current-context", returnStdout: true).trim()
+                            sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config set-context ${kubeContext} --namespace=${EKS_NAMESPACE}", returnStdout: true)
 
-                    // Retrieval of kubeconfig to connect to the EKS cluster
-                    wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${ACCESS_KEY_ID}", var: 'SECRET']]]) {
-                        wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SECRET_ACCESS_KEY}", var: 'SECRET']]]) {
-                            wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SESSION_TOKEN}", var: 'SECRET']]]) {
+                            // Apply the microservice configuration
+                            // Note: this config relies on secrets that are not managed by this pipeline, they are part of the namespace / project config
+                            println("[INFO] - Rollback to revision = ${rollbackVersion}")
+                            sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout undo deployment/${imageName} --to-revision=${rollbackVersion}", returnStdout: true)
 
-                                // Retrieval of kubeconfig to connect to the EKS cluster
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && aws eks --region eu-west-1 update-kubeconfig --name exp-cluster", returnStdout: true)
-
-                                // Positionning in the desired EKS namespace
-                                def EKS_NAMESPACE = "${deployNamespace}"
-                                kubeContext = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config current-context", returnStdout: true).trim()
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config set-context ${kubeContext} --namespace=${EKS_NAMESPACE}", returnStdout: true)
-
-                                // Apply the microservice configuration
-                                // Note: this config relies on secrets that are not managed by this pipeline, they are part of the namespace / project config
-                                println("[INFO] - Rollback to revision = ${rollbackVersion}")
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout undo deployment/${imageName} --to-revision=${rollbackVersion}", returnStdout: true)
-
-                                timeout(time: 5, unit: 'MINUTES') {
-                                    // Wait for the end of the deployment
-                                    sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment ${imageName} --timeout=300s", returnStdout: true)
-                                }
-
+                            timeout(time: 5, unit: 'MINUTES') {
+                                // Wait for the end of the deployment
+                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment ${imageName} --timeout=300s", returnStdout: true)
                             }
-                        }
 
+                        }
                     }
+
                 }
 
             }
 
         }
     }
+
+
 
 }
