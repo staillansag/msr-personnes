@@ -570,6 +570,15 @@ pipeline {
 
             script {
 
+                env.AWS_DEFAULT_REGION = 'eu-west-1'
+                env.NO_PROXY = '*.edf.fr'
+                env.HTTP_PROXY = 'vip-appli.proxy.edf.fr:3128'
+                env.HTTPS_PROXY = 'vip-appli.proxy.edf.fr:3128'
+                env.KUBECONFIG = "/var/lib/jenkins/.kube/config"
+                AWS_CREDENTIALS = credentials("${CLOUD_CREDENTIAL_ID}")
+                AWS_ACCESS_KEY_ID = "${env.AWS_CREDENTIALS_USR}"
+                AWS_SECRET_ACCESS_KEY = "${env.AWS_CREDENTIALS_PSW}"
+
                 // We do a rollback of the AWS deployment if instructed by performAWSRollback
                 if (awsRollbackVersion.length() != 0) {
                     println("[INFO] - Rollback to EKS deployment version ${awsRollbackVersion}")
