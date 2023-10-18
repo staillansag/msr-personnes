@@ -530,8 +530,8 @@ pipeline {
                                     """, returnStdout: true).trim()                                 
                                 // JSON_RESPONSE=$(kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD)
 
-                                S3_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.s3.statut'", , returnStdout: true).trim()  
-                                SFTP_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.sftp.statut'", , returnStdout: true).trim()  
+                                S3_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.s3.statut'", returnStdout: true).trim()  
+                                SFTP_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.sftp.statut'", returnStdout: true).trim()  
                                 // S3_STATUS=$(echo $JSON_RESPONSE | jq -r '.s3.statut')
                                 // SFTP_STATUS=$(echo $JSON_RESPONSE | jq -r '.sftp.statut')
 
