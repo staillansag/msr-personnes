@@ -533,6 +533,8 @@ pipeline {
                                 println "[INFO] - Test status : ${JSON_RESPONSE}"
 
                                 S3_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.s3.statut'", returnStdout: true).trim()  
+                                println "[INFO] - S3 status : ${S3_STATUS}"
+
                                 SFTP_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.sftp.statut'", returnStdout: true).trim()  
                                 // S3_STATUS=$(echo $JSON_RESPONSE | jq -r '.s3.statut')
                                 // SFTP_STATUS=$(echo $JSON_RESPONSE | jq -r '.sftp.statut')
