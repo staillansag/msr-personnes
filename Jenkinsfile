@@ -526,7 +526,7 @@ pipeline {
                                 // And still within the test pod we check if the zip files have been correctly placed in the SFTP server and S3 bucket
                                 JSON_RESPONSE=sh(script: """
                                     export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
-                                    kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD
+                                    kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD | jq
                                     """, returnStdout: true).trim()                                 
                                 // JSON_RESPONSE=$(kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD)
 
