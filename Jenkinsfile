@@ -530,6 +530,8 @@ pipeline {
                                     """, returnStdout: true).trim()                                 
                                 // JSON_RESPONSE=$(kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD)
 
+                                println "[INFO] - Test status : ${JSON_RESPONSE}"
+
                                 S3_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.s3.statut'", returnStdout: true).trim()  
                                 SFTP_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.sftp.statut'", returnStdout: true).trim()  
                                 // S3_STATUS=$(echo $JSON_RESPONSE | jq -r '.s3.statut')
@@ -537,8 +539,6 @@ pipeline {
 
                                 // Scale in the E2E tests microservice once the tests are finished
                                 sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl scale deployment dce-msr-tests --replicas=0", returnStdout: true)
-
-                                println "[INFO] - Test status : ${JSON_RESPONSE}"
 
                                 if (S3_STATUS != 'OK'
                                     || SFTP_STATUS != 'OK') {
