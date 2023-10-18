@@ -497,23 +497,25 @@ pipeline {
 
                                 // We get the name of the test pod
                                 TEST_POD=sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
+                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
                                     kubectl get pods --selector=app=dce-msr-tests --field-selector=status.phase=Running -o=jsonpath='{.items[0].metadata.name}'
-                                    """, , returnStdout: true)
+                                    """, returnStdout: true).trim()
                                 // TEST_POD=$(kubectl get pods --selector=app=dce-msr-tests --field-selector=status.phase=Running -o=jsonpath='{.items[0].metadata.name}')
 
                                 // We get the password to call APIs with basich auth
                                 ADMIN_PASSWORD=sh(script: """
                                     export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
                                     kubectl exec ${TEST_POD} -- sh -c "cat /etc/secrets/ADMIN_PASSWORD
-                                    """, , returnStdout: true)
+                                    """, returnStdout: true).trim()
                                 // ADMIN_PASSWORD=$(kubectl exec ${TEST_POD} -- sh -c "cat /etc/secrets/ADMIN_PASSWORD")
 
                                 // Since we don't have a working ingress, we make a call to POST /personnesAPI/personnes/demande-zip within the test pod, via the service layer
                                 ID_DEMANDE=sh(script: """
                                     export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
                                     kubectl exec $TEST_POD -- curl --silent --request POST "http://dce-msr-frontend/personnesAPI/personnes/demande-zip" -u Administrator:$ADMIN_PASSWORD | jq -r '.idDemande'
-                                    """, , returnStdout: true)                                 
+                                    """, returnStdout: true).trim()                                 
                                 // ID_DEMANDE=$(kubectl exec $TEST_POD -- curl --silent --request POST "http://dce-msr-frontend/personnesAPI/personnes/demande-zip" -u Administrator:$ADMIN_PASSWORD | jq -r '.idDemande')
 
                                 // Wait one minute for the who integration process to finish
@@ -523,11 +525,11 @@ pipeline {
                                 JSON_RESPONSE=sh(script: """
                                     export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
                                     kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD
-                                    """, , returnStdout: true)                                 
+                                    """, returnStdout: true).trim()                                 
                                 // JSON_RESPONSE=$(kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD)
 
-                                S3_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.s3.statut'", , returnStdout: true)  
-                                SFTP_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.sftp.statut'", , returnStdout: true)  
+                                S3_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.s3.statut'", , returnStdout: true).trim()  
+                                SFTP_STATUS=sh(script: "echo $JSON_RESPONSE | jq -r '.sftp.statut'", , returnStdout: true).trim()  
                                 // S3_STATUS=$(echo $JSON_RESPONSE | jq -r '.s3.statut')
                                 // SFTP_STATUS=$(echo $JSON_RESPONSE | jq -r '.sftp.statut')
 
