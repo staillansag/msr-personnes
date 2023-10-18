@@ -610,8 +610,8 @@ pipeline {
 
                                     // Apply the microservice configuration
                                     // Note: this config relies on secrets that are not managed by this pipeline, they are part of the namespace / project config
-                                    println("[INFO] - Rollback to revision = ${rollbackVersion}")
-                                    sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout undo deployment/${imageName} --to-revision=${rollbackVersion}", returnStdout: true)
+                                    println("[INFO] - Rollback to revision = ${awsRollbackVersion}")
+                                    sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout undo deployment/${imageName} --to-revision=${awsRollbackVersion}", returnStdout: true)
 
                                     timeout(time: 5, unit: 'MINUTES') {
                                         // Wait for the end of the deployment
