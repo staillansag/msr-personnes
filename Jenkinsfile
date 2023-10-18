@@ -511,14 +511,12 @@ pipeline {
                                     export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
                                     kubectl exec ${TEST_POD} -- sh -c 'cat /etc/secrets/ADMIN_PASSWORD'
                                     """, returnStdout: true).trim()
-                                // ADMIN_PASSWORD=$(kubectl exec ${TEST_POD} -- sh -c "cat /etc/secrets/ADMIN_PASSWORD")
 
                                 // Since we don't have a working ingress, we make a call to POST /personnesAPI/personnes/demande-zip within the test pod, via the service layer
                                 ID_DEMANDE=sh(script: """
                                     export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
                                     kubectl exec $TEST_POD -- curl --silent --request POST "http://dce-msr-frontend/personnesAPI/personnes/demande-zip" -u Administrator:$ADMIN_PASSWORD | jq -r '.idDemande'
                                     """, returnStdout: true).trim()                                 
-                                // ID_DEMANDE=$(kubectl exec $TEST_POD -- curl --silent --request POST "http://dce-msr-frontend/personnesAPI/personnes/demande-zip" -u Administrator:$ADMIN_PASSWORD | jq -r '.idDemande')
 
                                 // Wait one minute for the who integration process to finish
                                 sh(script: "sleep 60", returnStdout: true)
@@ -526,18 +524,15 @@ pipeline {
                                 // And still within the test pod we check if the zip files have been correctly placed in the SFTP server and S3 bucket
                                 JSON_RESPONSE=sh(script: """
                                     export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
-                                    kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD | jq
+                                    kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD
                                     """, returnStdout: true).trim()                                 
-                                // JSON_RESPONSE=$(kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD)
 
                                 println "[INFO] - Test status : ${JSON_RESPONSE}"
 
-                                S3_STATUS=sh(script: "echo \"$JSON_RESPONSE\" | jq -r '.s3.statut'", returnStdout: true).trim()  
+                                S3_STATUS=sh(script: "echo '${JSON_RESPONSE}' | jq -r '.s3.statut'", returnStdout: true).trim()  
                                 println "[INFO] - S3 status : ${S3_STATUS}"
 
-                                SFTP_STATUS=sh(script: "echo \"$JSON_RESPONSE\" | jq -r '.sftp.statut'", returnStdout: true).trim()  
-                                // S3_STATUS=$(echo $JSON_RESPONSE | jq -r '.s3.statut')
-                                // SFTP_STATUS=$(echo $JSON_RESPONSE | jq -r '.sftp.statut')
+                                SFTP_STATUS=sh(script: "echo '${JSON_RESPONSE}' | jq -r '.sftp.statut'", returnStdout: true).trim()  
 
                                 // Scale in the E2E tests microservice once the tests are finished
                                 sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl scale deployment dce-msr-tests --replicas=0", returnStdout: true)
