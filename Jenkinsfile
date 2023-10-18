@@ -570,15 +570,9 @@ pipeline {
 
             script {
 
-                // We do a rollback of the OpenShift deployment if instructed by performAWSRollback
-                if (performOpenShiftRollback == 'true' && openShiftRollbackVersion.length() != 0) {
-                    println("[INFO] - Rollback to OpenShift deployment version ${openShiftRollbackVersion}")
-
-                }
-
                 // We do a rollback of the AWS deployment if instructed by performAWSRollback
-                if (performAWSRollback == 'true' && awsRollbackVersion.length() != 0) {
-                    println("[INFO] - Rollback to AWS deployment version ${awsRollbackVersion}")
+                if (awsRollbackVersion.length() != 0) {
+                    println("[INFO] - Rollback to EKS deployment version ${awsRollbackVersion}")
 
                     wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${CLOUD_ASSUME_ROLE}", var: 'SECRET']]]) {
                         ROLE = readJSON text: sh(script: "aws sts assume-role --role-arn '${CLOUD_ASSUME_ROLE}' --role-session-name '${AWS_ACCOUNT.replaceAll('-', '_')}'", returnStdout: true)
