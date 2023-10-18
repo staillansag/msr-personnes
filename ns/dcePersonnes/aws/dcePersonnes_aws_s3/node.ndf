@@ -13,7 +13,7 @@
     <value name="providerName">WmAmazonS3Provider</value>
     <value name="providerConnectionType">sagcloud</value>
     <record name="connectionGroupProperties" javaclass="com.wm.util.Values">
-      <value name="cn.providerUrl">https://s3.amazonaws.com/</value>
+      <value name="cn.providerUrl">https://s3-interne-dsit.edf.fr</value>
       <value name="cn.connectTimeout">30000</value>
       <value name="cn.readTimeout">30000</value>
       <value name="cn.socketStaleCheck">true</value>
@@ -42,7 +42,7 @@
       <value name="pr.followServerRedirects">true</value>
       <value name="pr.allowCircularRedirects">true</value>
       <value name="pr.serverRedirectMax">5</value>
-      <value name="aws.accessKey"></value>
+      <value name="aws.accessKey">RYAJ0PKMCEAKV0DJHF1P</value>
       <value name="aws.secretKey">dcePersonnes.aws:dcePersonnes_aws_s3.aws.secretKey</value>
       <value name="aws.region"></value>
     </record>
