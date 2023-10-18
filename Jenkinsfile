@@ -509,7 +509,7 @@ pipeline {
                                 // We get the password to call APIs with basich auth
                                 ADMIN_PASSWORD=sh(script: """
                                     export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
-                                    kubectl exec ${TEST_POD} -- sh -c "cat /etc/secrets/ADMIN_PASSWORD
+                                    kubectl exec ${TEST_POD} -- sh -c 'cat /etc/secrets/ADMIN_PASSWORD'
                                     """, returnStdout: true).trim()
                                 // ADMIN_PASSWORD=$(kubectl exec ${TEST_POD} -- sh -c "cat /etc/secrets/ADMIN_PASSWORD")
 
