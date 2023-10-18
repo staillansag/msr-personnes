@@ -508,13 +508,17 @@ pipeline {
 
                                 // We get the password to call APIs with basich auth
                                 ADMIN_PASSWORD=sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
+                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
                                     kubectl exec ${TEST_POD} -- sh -c 'cat /etc/secrets/ADMIN_PASSWORD'
                                     """, returnStdout: true).trim()
 
                                 // Since we don't have a working ingress, we make a call to POST /personnesAPI/personnes/demande-zip within the test pod, via the service layer
                                 ID_DEMANDE=sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
+                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
                                     kubectl exec $TEST_POD -- curl --silent --request POST "http://dce-msr-frontend/personnesAPI/personnes/demande-zip" -u Administrator:$ADMIN_PASSWORD | jq -r '.idDemande'
                                     """, returnStdout: true).trim()                                 
 
@@ -523,7 +527,9 @@ pipeline {
 
                                 // And still within the test pod we check if the zip files have been correctly placed in the SFTP server and S3 bucket
                                 JSON_RESPONSE=sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} &&
+                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
                                     kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD
                                     """, returnStdout: true).trim()                                 
 
@@ -533,9 +539,15 @@ pipeline {
                                 println "[INFO] - S3 status : ${S3_STATUS}"
 
                                 SFTP_STATUS=sh(script: "echo '${JSON_RESPONSE}' | jq -r '.sftp.statut'", returnStdout: true).trim()  
+                                println "[INFO] - SFTP status : ${SFTP_STATUS}"
 
                                 // Scale in the E2E tests microservice once the tests are finished
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl scale deployment dce-msr-tests --replicas=0", returnStdout: true)
+                                sh(script: """
+                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
+                                    kubectl scale deployment dce-msr-tests --replicas=0
+                                    """, returnStdout: true)
 
                                 if (S3_STATUS != 'OK'
                                     || SFTP_STATUS != 'OK') {
