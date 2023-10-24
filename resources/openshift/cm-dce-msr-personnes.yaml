@@ -9,7 +9,7 @@ data:
     artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.datasourceClass=com.wm.dd.jdbcx.oracle.OracleDataSource
     artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.portNumber=1521
     artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.serverName=dbaas-std-noe.noe.edf.fr
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.user=POC_CAAS_WEBM1
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.user=POC_CAAS_DATA_SAG
     artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.password=$secret{DB_PASSWORD}
     artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.maximumPoolSize=10
     artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.transactionType=LOCAL_TRANSACTION
@@ -34,6 +34,9 @@ data:
     sftpuser.sftp_user.userName=pocsag
     sftpuser.sftp_user.password=$secret{SFTP_USER_PASSWORD}
     globalvariable.SFTP_FOLDER.value=/poc/proftpd/sftp/pocsag
+
+    globalvariable.SERVER.value=$env{SERVER}
+    globalvariable.TEMP_DIR.value=/tmp/work
 
     cloudstreamsconnection.dcePersonnes.dcePersonnes..aws\:dcePersonnes_aws_s3.connectionconfiguration.aws..accessKey=$secret{S3_ACCESS_KEY}
     cloudstreamsconnection.dcePersonnes.dcePersonnes..aws\:dcePersonnes_aws_s3.connectionconfiguration.aws..secretKey=$secret{S3_SECRET_KEY}

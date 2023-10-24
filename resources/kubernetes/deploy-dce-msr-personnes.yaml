@@ -36,6 +36,11 @@ spec:
             - containerPort: 5555
               name: http
               protocol: TCP
+          env:
+            - name: SERVER
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           volumeMounts:
             - name: microservicesruntime-license
               mountPath: /opt/softwareag/IntegrationServer/config/licenseKey.xml

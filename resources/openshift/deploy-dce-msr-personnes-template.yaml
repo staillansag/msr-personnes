@@ -48,6 +48,11 @@ objects:
                 - containerPort: 5555
                   name: http
                   protocol: TCP
+              env:
+                - name: SERVER
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
               volumeMounts:
                 - name: microservicesruntime-license
                   mountPath: /opt/softwareag/IntegrationServer/config/licenseKey.xml
@@ -61,11 +66,11 @@ objects:
                   mountPath: /etc/secrets
               resources:
                 requests:
-                  cpu: 300m
-                  memory: 500Mi
+                  cpu: 500m
+                  memory: 100Mi
                 limits:
                   cpu: 1000m
-                  memory: 1000Mi
+                  memory: 2000Mi
               livenessProbe:
                 tcpSocket:
                   port: 5555

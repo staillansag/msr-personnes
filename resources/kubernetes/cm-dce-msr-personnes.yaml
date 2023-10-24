@@ -41,6 +41,7 @@ data:
     globalvariable.S3_BUCKET.value=dp-bucket-s3-poc
     globalvariable.S3_PERSONNES_FOLDER.value=POCSAG
 
+    globalvariable.SERVER.value=$env{SERVER}
     globalvariable.TEMP_DIR.value=/tmp/work
 
     jdbc.wmdb.dbURL=jdbc:wm:postgresql://pg-pocsag.clzdcpofefi7.eu-west-1.rds.amazonaws.com:5432;databaseName=wm;EncryptionMethod=SSL;ValidateServerCertificate=false
