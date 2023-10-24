@@ -30,7 +30,7 @@
     <value name="executeUser">Administrator</value>
     <value name="aliasName">DEFAULT_IS_JMS_CONNECTION</value>
     <number name="jmsTriggerType" type="Integer">0</number>
-    <Boolean name="enabled">false</Boolean>
+    <Boolean name="enabled">true</Boolean>
     <value name="prefetchSize">10</value>
     <value name="connectionCount">1</value>
     <value name="inactiveWaitTime">1500</value>
