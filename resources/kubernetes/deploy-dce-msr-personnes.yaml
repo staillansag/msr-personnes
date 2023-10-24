@@ -50,10 +50,10 @@ spec:
           resources:
             requests:
               cpu: 300m
-              memory: 500Mi
+              memory: 1000Mi
             limits:
               cpu: 1000m
-              memory: 1000Mi
+              memory: 1500Mi
           livenessProbe:
             tcpSocket:
               port: 5555

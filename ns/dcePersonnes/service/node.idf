@@ -26,6 +26,8 @@ ciAiICsgZmlsZSk7CiAgICAgICAgfQogICAgfQp9</value>
     <value>java.io.FileOutputStream</value>
     <value>java.io.FileWriter</value>
     <value>java.io.IOException</value>
+    <value>java.io.OutputStreamWriter</value>
+    <value>java.io.Writer</value>
     <value>java.util.zip.ZipEntry</value>
     <value>java.util.zip.ZipOutputStream</value>
   </array>

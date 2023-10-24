@@ -12,6 +12,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 // --- <<IS-END-IMPORTS>> ---
@@ -53,22 +55,28 @@ public final class service
 		if (!directory.exists()) {
 		    if(directory.mkdirs()) {
 		    } else {
-		    	throw new ServiceException("Le r\u00E9pertoire ne peut pas \u00EAtre cr\u00E9\u00E9");
+		    	throw new ServiceException("Le r\u00E9pertoire " + directory.getPath() + " ne peut pas \u00EAtre cr\u00E9\u00E9");
 		    }
 		}
 		
+		Writer out = null;
 		
-		FileWriter fileWriter = null;
+		//FileWriter fileWriter = null;
 		
 		try {
-		    fileWriter = new FileWriter(filePath + "/" + fileName);
-		    fileWriter.write(content);
+		    //fileWriter = new FileWriter(filePath + "/" + fileName);
+		    //fileWriter.write(content);
+		    
+			out = new OutputStreamWriter(new FileOutputStream(filePath + "/" + fileName), "UTF-8");
+			out.write(content);
+			  
 		} catch (IOException e) {
 		    throw new ServiceException(e);
 		} finally {
 		    try {
-		        if (fileWriter != null) {
-		            fileWriter.close();
+		        if (out != null) {
+		            //fileWriter.close();
+		            out.close();
 		        }
 		    } catch (IOException e) {
 		    	throw new ServiceException(e);
