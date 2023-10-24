@@ -555,6 +555,8 @@ pipeline {
                                         performAwsRollback = 'true'
                                         error("[ERROR] - E2E tests failed")
                                     }
+                                } else {
+                                    performAwsRollback = 'false'
                                 }
 
                             }
