@@ -4,17 +4,16 @@ metadata:
   name: dce-msr-personnes
 data:
   application.properties: |
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionEnabled=true
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.databaseName=pocsag
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.datasourceClass=com.wm.dd.jdbcx.oracle.OracleDataSource
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.portNumber=1521
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.serverName=dbaas-std-noe.noe.edf.fr
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.user=POC_CAAS_DATA_SAG
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.password=$secret{DB_PASSWORD}
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.maximumPoolSize=10
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.transactionType=LOCAL_TRANSACTION
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.otherProperties=serviceName\=EA7DEV1_S.noe.edf.fr
-    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionSettings.driverType=Default
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc.connectionEnabled=false
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionEnabled=true
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.datasourceClass=com.wm.dd.jdbcx.oracle.OracleDataSource
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.portNumber=1521
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.serverName=dbaas-std-noe.noe.edf.fr
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.user=POC_CAAS_DATA_SAG
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.password=$secret{DB_PASSWORD}
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.maximumPoolSize=10
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.transactionType=LOCAL_TRANSACTION
+    artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.otherProperties=serviceName\=EA7DEV1_S.noe.edf.fr
 
     jndi.DEFAULT_IS_JNDI_PROVIDER.providerURL=nsp://umserver-h:9000
     jms.DEFAULT_IS_JMS_CONNECTION.clientID=DEFAULT_IS_JMS_CLIENT

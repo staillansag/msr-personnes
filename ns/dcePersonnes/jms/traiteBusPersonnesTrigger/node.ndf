@@ -50,9 +50,9 @@
     <array name="destinations" type="record" depth="1">
       <record javaclass="com.wm.util.Values">
         <value name="destination">PersonnesTopic</value>
-        <null name="messageSelector"/>
+        <value name="messageSelector"></value>
         <number name="destinationType" type="Integer">1</number>
-        <null name="durableSubscriberName"/>
+        <value name="durableSubscriberName">traiteBusPersonnes</value>
         <Boolean name="durableSubscriberNoLocal">false</Boolean>
       </record>
     </array>
