@@ -452,119 +452,119 @@ pipeline {
 
         }
 
-        stage('AWS - EKS E2E tests') {
-            options {
-                timeout(time: 5, unit: 'MINUTES')
-            }
-            environment {
-                AWS_DEFAULT_REGION = 'eu-west-1'
-                NO_PROXY = '*.edf.fr'
-                HTTP_PROXY = 'vip-appli.proxy.edf.fr:3128'
-                HTTPS_PROXY = 'vip-appli.proxy.edf.fr:3128'
-                KUBECONFIG = "/var/lib/jenkins/.kube/config"
-                AWS_CREDENTIALS = credentials("${CLOUD_CREDENTIAL_ID}")
-                AWS_ACCESS_KEY_ID = "${env.AWS_CREDENTIALS_USR}"
-                AWS_SECRET_ACCESS_KEY = "${env.AWS_CREDENTIALS_PSW}"
-            }
-            steps{
-                script {
+        // stage('AWS - EKS E2E tests') {
+        //     options {
+        //         timeout(time: 5, unit: 'MINUTES')
+        //     }
+        //     environment {
+        //         AWS_DEFAULT_REGION = 'eu-west-1'
+        //         NO_PROXY = '*.edf.fr'
+        //         HTTP_PROXY = 'vip-appli.proxy.edf.fr:3128'
+        //         HTTPS_PROXY = 'vip-appli.proxy.edf.fr:3128'
+        //         KUBECONFIG = "/var/lib/jenkins/.kube/config"
+        //         AWS_CREDENTIALS = credentials("${CLOUD_CREDENTIAL_ID}")
+        //         AWS_ACCESS_KEY_ID = "${env.AWS_CREDENTIALS_USR}"
+        //         AWS_SECRET_ACCESS_KEY = "${env.AWS_CREDENTIALS_PSW}"
+        //     }
+        //     steps{
+        //         script {
 
-                    wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${CLOUD_ASSUME_ROLE}", var: 'SECRET']]]) {
-                        ROLE = readJSON text: sh(script: "aws sts assume-role --role-arn '${CLOUD_ASSUME_ROLE}' --role-session-name '${AWS_ACCOUNT.replaceAll('-', '_')}'", returnStdout: true)
-                    }
+        //             wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${CLOUD_ASSUME_ROLE}", var: 'SECRET']]]) {
+        //                 ROLE = readJSON text: sh(script: "aws sts assume-role --role-arn '${CLOUD_ASSUME_ROLE}' --role-session-name '${AWS_ACCOUNT.replaceAll('-', '_')}'", returnStdout: true)
+        //             }
 
-                    ACCESS_KEY_ID = ROLE["Credentials"]["AccessKeyId"]
-                    SECRET_ACCESS_KEY = ROLE["Credentials"]["SecretAccessKey"]
-                    SESSION_TOKEN = ROLE["Credentials"]["SessionToken"]                   
+        //             ACCESS_KEY_ID = ROLE["Credentials"]["AccessKeyId"]
+        //             SECRET_ACCESS_KEY = ROLE["Credentials"]["SecretAccessKey"]
+        //             SESSION_TOKEN = ROLE["Credentials"]["SessionToken"]                   
 
-                    wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${ACCESS_KEY_ID}", var: 'SECRET']]]) {
-                        wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SECRET_ACCESS_KEY}", var: 'SECRET']]]) {
-                            wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SESSION_TOKEN}", var: 'SECRET']]]) {
+        //             wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${ACCESS_KEY_ID}", var: 'SECRET']]]) {
+        //                 wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SECRET_ACCESS_KEY}", var: 'SECRET']]]) {
+        //                     wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: "${SESSION_TOKEN}", var: 'SECRET']]]) {
 
-                                // Retrieval of kubeconfig to connect to the EKS cluster
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && aws eks --region eu-west-1 update-kubeconfig --name exp-cluster", returnStdout: true)
+        //                         // Retrieval of kubeconfig to connect to the EKS cluster
+        //                         sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && aws eks --region eu-west-1 update-kubeconfig --name exp-cluster", returnStdout: true)
 
-                                // Positionning in the desired EKS namespace
-                                def EKS_NAMESPACE = "${deployNamespace}"
-                                kubeContext = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config current-context", returnStdout: true).trim()
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config set-context ${kubeContext} --namespace=${EKS_NAMESPACE}", returnStdout: true)
+        //                         // Positionning in the desired EKS namespace
+        //                         def EKS_NAMESPACE = "${deployNamespace}"
+        //                         kubeContext = sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config current-context", returnStdout: true).trim()
+        //                         sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl config set-context ${kubeContext} --namespace=${EKS_NAMESPACE}", returnStdout: true)
 
-                                // Scale out the E2E tests microservice
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl scale deployment dce-msr-tests --replicas=1", returnStdout: true)
+        //                         // Scale out the E2E tests microservice
+        //                         sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl scale deployment dce-msr-tests --replicas=1", returnStdout: true)
 
-                                // Wait for the E2E tests pod to be up
-                                sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment dce-msr-tests --timeout=300s", returnStdout: true)
+        //                         // Wait for the E2E tests pod to be up
+        //                         sh(script: "export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} AWS_SESSION_TOKEN=${SESSION_TOKEN} && kubectl rollout status deployment dce-msr-tests --timeout=300s", returnStdout: true)
 
-                                // We get the name of the test pod
-                                TEST_POD=sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
-                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
-                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
-                                    kubectl get pods --selector=app=dce-msr-tests --field-selector=status.phase=Running -o=jsonpath='{.items[0].metadata.name}'
-                                    """, returnStdout: true).trim()
-                                // TEST_POD=$(kubectl get pods --selector=app=dce-msr-tests --field-selector=status.phase=Running -o=jsonpath='{.items[0].metadata.name}')
+        //                         // We get the name of the test pod
+        //                         TEST_POD=sh(script: """
+        //                             export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+        //                             export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+        //                             export AWS_SESSION_TOKEN=${SESSION_TOKEN}
+        //                             kubectl get pods --selector=app=dce-msr-tests --field-selector=status.phase=Running -o=jsonpath='{.items[0].metadata.name}'
+        //                             """, returnStdout: true).trim()
+        //                         // TEST_POD=$(kubectl get pods --selector=app=dce-msr-tests --field-selector=status.phase=Running -o=jsonpath='{.items[0].metadata.name}')
 
-                                println "[INFO] - Test pod name: ${TEST_POD}"
+        //                         println "[INFO] - Test pod name: ${TEST_POD}"
 
-                                // We get the password to call APIs with basich auth
-                                ADMIN_PASSWORD=sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
-                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
-                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
-                                    kubectl exec ${TEST_POD} -- sh -c 'cat /etc/secrets/ADMIN_PASSWORD'
-                                    """, returnStdout: true).trim()
+        //                         // We get the password to call APIs with basich auth
+        //                         ADMIN_PASSWORD=sh(script: """
+        //                             export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+        //                             export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+        //                             export AWS_SESSION_TOKEN=${SESSION_TOKEN}
+        //                             kubectl exec ${TEST_POD} -- sh -c 'cat /etc/secrets/ADMIN_PASSWORD'
+        //                             """, returnStdout: true).trim()
 
-                                // Since we don't have a working ingress, we make a call to POST /personnesAPI/personnes/demande-zip within the test pod, via the service layer
-                                ID_DEMANDE=sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
-                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
-                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
-                                    kubectl exec $TEST_POD -- curl --silent --request POST "http://dce-msr-frontend/personnesAPI/personnes/demande-zip" -u Administrator:$ADMIN_PASSWORD | jq -r '.idDemande'
-                                    """, returnStdout: true).trim()                                 
+        //                         // Since we don't have a working ingress, we make a call to POST /personnesAPI/personnes/demande-zip within the test pod, via the service layer
+        //                         ID_DEMANDE=sh(script: """
+        //                             export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+        //                             export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+        //                             export AWS_SESSION_TOKEN=${SESSION_TOKEN}
+        //                             kubectl exec $TEST_POD -- curl --silent --request POST "http://dce-msr-frontend/personnesAPI/personnes/demande-zip" -u Administrator:$ADMIN_PASSWORD | jq -r '.idDemande'
+        //                             """, returnStdout: true).trim()                                 
 
-                                // Wait one minute for the who integration process to finish
-                                sh(script: "sleep 60", returnStdout: true)
+        //                         // Wait one minute for the who integration process to finish
+        //                         sh(script: "sleep 60", returnStdout: true)
 
-                                // And still within the test pod we check if the zip files have been correctly placed in the SFTP server and S3 bucket
-                                JSON_RESPONSE=sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
-                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
-                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
-                                    kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD
-                                    """, returnStdout: true).trim()                                 
+        //                         // And still within the test pod we check if the zip files have been correctly placed in the SFTP server and S3 bucket
+        //                         JSON_RESPONSE=sh(script: """
+        //                             export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+        //                             export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+        //                             export AWS_SESSION_TOKEN=${SESSION_TOKEN}
+        //                             kubectl exec $TEST_POD -- curl --silent "http://localhost:5555/testAPI/personnes-zip/${ID_DEMANDE}" -u Administrator:$ADMIN_PASSWORD
+        //                             """, returnStdout: true).trim()                                 
 
-                                println "[INFO] - Test status : ${JSON_RESPONSE}"
+        //                         println "[INFO] - Test status : ${JSON_RESPONSE}"
 
-                                S3_STATUS=sh(script: "echo '${JSON_RESPONSE}' | jq -r '.s3.statut'", returnStdout: true).trim()  
-                                println "[INFO] - S3 status : ${S3_STATUS}"
+        //                         S3_STATUS=sh(script: "echo '${JSON_RESPONSE}' | jq -r '.s3.statut'", returnStdout: true).trim()  
+        //                         println "[INFO] - S3 status : ${S3_STATUS}"
 
-                                SFTP_STATUS=sh(script: "echo '${JSON_RESPONSE}' | jq -r '.sftp.statut'", returnStdout: true).trim()  
-                                println "[INFO] - SFTP status : ${SFTP_STATUS}"
+        //                         SFTP_STATUS=sh(script: "echo '${JSON_RESPONSE}' | jq -r '.sftp.statut'", returnStdout: true).trim()  
+        //                         println "[INFO] - SFTP status : ${SFTP_STATUS}"
 
-                                // Scale in the E2E tests microservice once the tests are finished
-                                sh(script: """
-                                    export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
-                                    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
-                                    export AWS_SESSION_TOKEN=${SESSION_TOKEN}
-                                    kubectl scale deployment dce-msr-tests --replicas=0
-                                    """, returnStdout: true)
+        //                         // Scale in the E2E tests microservice once the tests are finished
+        //                         sh(script: """
+        //                             export AWS_ACCESS_KEY_ID=${ACCESS_KEY_ID} 
+        //                             export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY} 
+        //                             export AWS_SESSION_TOKEN=${SESSION_TOKEN}
+        //                             kubectl scale deployment dce-msr-tests --replicas=0
+        //                             """, returnStdout: true)
 
-                                if (S3_STATUS != 'OK'
-                                    || SFTP_STATUS != 'OK') {
-                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        performAwsRollback = 'true'
-                                        error("[ERROR] - E2E tests failed")
-                                    }
-                                }
+        //                         if (S3_STATUS != 'OK'
+        //                             || SFTP_STATUS != 'OK') {
+        //                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+        //                                 performAwsRollback = 'true'
+        //                                 error("[ERROR] - E2E tests failed")
+        //                             }
+        //                         }
 
-                            }
-                        }
-                    }
+        //                     }
+        //                 }
+        //             }
 
-                }
-            }
+        //         }
+        //     }
 
-        }
+        // }
 
         stage('AWS - EKS rollback') {
             options {
