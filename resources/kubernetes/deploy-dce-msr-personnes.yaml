@@ -50,9 +50,9 @@ spec:
               mountPath: /opt/softwareag/IntegrationServer/application.properties
               subPath:   application.properties
               readOnly:  true
-            - name: dcePersonnes_aws_emr_config
+            - name: aws-emr-config
               mountPath: /opt/softwareag/IntegrationServer/packages/dcePersonnes/ns/dcePersonnes/aws/dcePersonnes_aws_emr/node.ndf
-              subPath:   dcePersonnes_aws_emr.cnf
+              subPath:   node.idf
               readOnly:  true
             - name: secrets
               mountPath: /etc/secrets
@@ -96,9 +96,9 @@ spec:
             items:
             - key:  application.properties
               path: application.properties
-        - name: dcePersonnes_aws_emr_config
+        - name: aws-emr-config
           configMap:
             name: dce-msr-personnes
             items:
-            - key:  dcePersonnes_aws_emr.cnf
-              path: node.ndf
+            - key:  node.idf
+              path: node.idf

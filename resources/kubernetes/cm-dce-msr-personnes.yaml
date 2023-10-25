@@ -60,10 +60,8 @@ data:
 
   applicationFile.properties:  |
 
-  dcePersonnes_aws_emr.cnf: |
-
+  node.idf: |
     <?xml version="1.0" encoding="UTF-8"?>
- 
     <Values version="2.0">
       <value name="node_type">HDFSConnectionData</value>
       <value name="node_subtype">unknown</value>

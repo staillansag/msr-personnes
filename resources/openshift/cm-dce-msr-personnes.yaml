@@ -60,3 +60,28 @@ data:
     user.Administrator.password=$secret{ADMIN_PASSWORD}
 
   applicationFile.properties:  |
+
+  dcePersonnes_aws_emr.cnf: |
+
+    <?xml version="1.0" encoding="UTF-8"?>
+ 
+    <Values version="2.0">
+      <value name="node_type">HDFSConnectionData</value>
+      <value name="node_subtype">unknown</value>
+      <value name="node_nsName">dcePersonnes.aws:dcePersonnes_aws_emr</value>
+      <value name="node_pkg">dcePersonnes</value>
+      <value name="is_public">false</value>
+      <record name="HDFSConnectionData" javaclass="com.wm.util.Values">
+        <value name="description">EMR</value>
+        <value name="namenodeUri">hdfs://ip-172-16-2-83.eu-west-1.compute.internal:8020</value>
+        <number name="replication" type="Short">1</number>
+        <number name="blockSize" type="Long">1</number>
+        <number name="bufferSize" type="Integer">4</number>
+        <value name="connectionstate">enabled</value>
+        <value name="authType">NO_AUTH</value>
+        <value name="user">hdfs</value>
+        <value name="group">hdfsadmingroup</value>
+        <value name="coreSiteFilePath"></value>
+        <value name="hdfsSiteFilePath"></value>
+      </record>
+    </Values>
