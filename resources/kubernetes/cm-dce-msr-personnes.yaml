@@ -44,6 +44,10 @@ data:
     globalvariable.SERVER.value=$env{SERVER}
     globalvariable.TEMP_DIR.value=/tmp/work
 
+    globalvariable.WEBHDFS_URL.value=http://ec2-34-247-69-117.eu-west-1.compute.amazonaws.com:9870/webhdfs/v1
+    globalvariable.HDFS_PERSONNES_FOLDER.value=/user/hadoop/pocsag
+    globalvariable.HDFS_USER.value=hadoop
+
     jdbc.wmdb.dbURL=jdbc:wm:postgresql://pg-pocsag.clzdcpofefi7.eu-west-1.rds.amazonaws.com:5432;databaseName=wm;EncryptionMethod=SSL;ValidateServerCertificate=false
     jdbc.wmdb.userid=postgres
     jdbc.wmdb.password=$secret{WM_DB_PASSWORD}
