@@ -668,9 +668,6 @@
 </DATA>
 </MAPSET>
 
-<MAPCOPY FROM="/JMSMessage;4;0;pub.jms:JMSMessage/body;2;0/bytes;3.10;0" TO="/data;2;0/bytes;3;0">
-</MAPCOPY>
-
 <MAPSET NAME="Setter" OVERWRITE="true" VARIABLES="false" GLOBALVARIABLES="false" FIELD="/followRedirect;1;0">
   <DATA ENCODING="XMLValues" I18N="true">
 
@@ -695,6 +692,9 @@
 </Values>
 </DATA>
 </MAPSET>
+
+<MAPCOPY FROM="/JMSMessage;4;0;pub.jms:JMSMessage/body;2;0/object;3;0" TO="/data;2;0/bytes;3;0">
+</MAPCOPY>
 </MAP>
 
 <MAP MODE="OUTPUT">
