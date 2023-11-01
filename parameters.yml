@@ -1,6 +1,6 @@
 parameters:
   FROM_PLATFORM: "mycontainers-v1"
-  FROM_IMAGE: "msr-dce-dev:10.15.fix7.1"
+  FROM_IMAGE: "msr-dce-dev:0.0.4"
   FROM_NAMESPACE: "ea7-integrationdsit-grp-hp"
   DEPLOY_NAMESPACE: "ea7-integrationdsit-grp-hp"
   IMAGE_NAME: "dce-msr-personnes"
