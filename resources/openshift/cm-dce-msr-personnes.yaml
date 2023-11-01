@@ -15,11 +15,15 @@ data:
     artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.transactionType=LOCAL_TRANSACTION
     artConnection.dcePersonnes.dcePersonnes.jdbc.dcePersonnes_jdbc_oracle.connectionSettings.otherProperties=serviceName\=EA7DEV1_S.noe.edf.fr
 
-    jndi.DEFAULT_IS_JNDI_PROVIDER.providerURL=nsp://umserver-h:9000
+    jndi.DEFAULT_IS_JNDI_PROVIDER.providerURL=nsp://umserver-0:9000
+    jndi.DEFAULT_IS_JNDI_PROVIDER.providerURLFailoverList=nsp://umserver-1:9000\r\nnsp://umserver-2:9000
     jms.DEFAULT_IS_JMS_CONNECTION.clientID=DEFAULT_IS_JMS_CLIENT
     jms.DEFAULT_IS_JMS_CONNECTION.enabled=true
     jms.DEFAULT_IS_JMS_CONNECTION.csqSize=0
     jms.DEFAULT_IS_JMS_CONNECTION.jndi_jndiAliasName=DEFAULT_IS_JNDI_PROVIDER
+    jms.DEFAULT_IS_JMS_CONNECTION.jndi_automaticallyCreateUMAdminObjects=true
+    jms.DEFAULT_IS_JMS_CONNECTION.producerMaxRetryAttempts=30
+    jms.DEFAULT_IS_JMS_CONNECTION.producerRetryInterval=1000
 
     sftpserver.sftp.hostName=dcgyy66x.noe.edf.fr
     sftpserver.sftp.port=22
@@ -34,7 +38,6 @@ data:
     sftpuser.sftp_user.password=$secret{SFTP_USER_PASSWORD}
     globalvariable.SFTP_FOLDER.value=/poc/proftpd/sftp/pocsag
 
-    globalvariable.SERVER.value=$env{SERVER}
     globalvariable.TEMP_DIR.value=/tmp/work
 
     cloudstreamsconnection.dcePersonnes.dcePersonnes..aws\:dcePersonnes_aws_s3.connectionconfiguration.aws..accessKey=$secret{S3_ACCESS_KEY}
@@ -48,14 +51,24 @@ data:
     jdbc.wmdb.dbURL=jdbc:wm:oracle://dbaas-std-noe.noe.edf.fr:1521;serviceName=EA7DEV1_S.noe.edf.fr
     jdbc.wmdb.userid=POC_CAAS_WEBM1
     jdbc.wmdb.password=$secret{WM_DB_PASSWORD}
+    jdbc.wmdb.maxConns=50
     jdbc.wmdb.driverAlias=DataDirect Connect JDBC Oracle Driver
     jdbcfunc.ISCoreAudit.connPoolAlias=wmdb
     jdbcfunc.ISInternal.connPoolAlias=wmdb
     jdbcfunc.ProcessAudit.connPoolAlias=wmdb
+    jdbcfunc.ISDashboardStats.connPoolAlias=none
+
+    globalvariable.SERVER.value=$env{SERVER}
 
     settings.watt.net.default.accept=application/json
     settings.watt.server.ns.lockingMode=none
-    settings.watt.net.localhost=https://dce-msr-personnes:443
+    settings.watt.net.localhost=http://dce-msr-personnes
+    settings.watt.server.saveConfigFiles=false 
+    settings.watt.server.audit.logFilesToKeep=1
+    settings.watt.server.serverlogFilesToKeep=1
+    settings.watt.server.stats.logFilesToKeep=1
+    settings.watt.server.pipeline.processor=false
+    statisticsdatacollector.monitorConfig.enabled=false
 
     user.Administrator.password=$secret{ADMIN_PASSWORD}
 

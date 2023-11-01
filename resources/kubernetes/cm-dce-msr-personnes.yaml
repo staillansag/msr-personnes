@@ -20,6 +20,9 @@ data:
     jms.DEFAULT_IS_JMS_CONNECTION.enabled=true
     jms.DEFAULT_IS_JMS_CONNECTION.csqSize=0
     jms.DEFAULT_IS_JMS_CONNECTION.jndi_jndiAliasName=DEFAULT_IS_JNDI_PROVIDER
+    jms.DEFAULT_IS_JMS_CONNECTION.jndi_automaticallyCreateUMAdminObjects=true
+    jms.DEFAULT_IS_JMS_CONNECTION.producerMaxRetryAttempts=30
+    jms.DEFAULT_IS_JMS_CONNECTION.producerRetryInterval=1000
 
     sftpserver.sftp.hostName=ip-172-16-2-64.eu-west-1.compute.internal
     sftpserver.sftp.port=22
