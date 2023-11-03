@@ -58,25 +58,25 @@ spec:
               mountPath: /etc/secrets
           resources:
             requests:
-              cpu: 300m
+              cpu: 500m
               memory: 1000Mi
             limits:
               cpu: 1000m
-              memory: 1500Mi
+              memory: 2000Mi
           livenessProbe:
             tcpSocket:
               port: 5555
             failureThreshold: 3
-            initialDelaySeconds: 180
-            periodSeconds: 30
+            initialDelaySeconds: 120
+            periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 1
           readinessProbe:
             tcpSocket:
               port: 5555
-            initialDelaySeconds: 5
+            initialDelaySeconds: 30
             periodSeconds: 5
-            failureThreshold: 24
+            failureThreshold: 18
       imagePullSecrets:
       - name: ecrregcred
       volumes:
