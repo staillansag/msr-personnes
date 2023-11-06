@@ -41,11 +41,6 @@ stages:
         docker tag "${IMAGE_TAG_BASE}:${VERSION}" "${IMAGE_TAG_BASE}:latest" || exit 1
       displayName: "Apply latest tag to new image"
 
-  - job: PushImage
-    dependsOn: BuildImage
-
-    steps:
-
     - script: |
         docker login -u "${DOCKER_REGISTRY_ID}" -p "${DOCKER_REGISTRY_SECRET}" "${DOCKER_REGISTRY_URI}" || exit 1
       displayName: 'Login to image registry'
