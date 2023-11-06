@@ -4,8 +4,6 @@ pool:
 variables:
   - group: aks.variables
   - group: azure.variables
-  - group: sag.variables
-  - group: environment.variables
   - group: personnes.variables
  
 stages:
@@ -23,7 +21,7 @@ stages:
     - name: MINOR
       value: $[variables['IMAGE_MINOR_VERSION']]
     - name: VERSION_PREFIX
-      value: $(MAJOR).$(MINOR)
+      value: $(IMAGE_TAG_BASE):$(MAJOR).$(MINOR)
     - name: PATCH
       value: $[counter(variables['VERSION_PREFIX'], 1)]
     - name: VERSION
@@ -32,13 +30,13 @@ stages:
     steps:
 
     - script: |
-        echo "Building ${IMAGE_TAG_BASE}:${VERSION}"
-        docker build -t "${IMAGE_TAG_BASE}:${VERSION}" . || exit 1
+        echo "Building ${VERSION}"
+        docker build -t "${VERSION}" . || exit 1
       displayName: "Build new image"
 
     - script: |
         echo "Tagging ${IMAGE_TAG_BASE}:latest"
-        docker tag "${IMAGE_TAG_BASE}:${VERSION}" "${IMAGE_TAG_BASE}:latest" || exit 1
+        docker tag "${VERSION}" "${IMAGE_TAG_BASE}:latest" || exit 1
       displayName: "Apply latest tag to new image"
 
     - script: |
@@ -48,7 +46,7 @@ stages:
         DOCKER_REGISTRY_SECRET: $(DOCKER_REGISTRY_SECRET)
 
     - script: |
-        docker push "${IMAGE_TAG_BASE}:${VERSION}" || exit 1
+        docker push "${VERSION}" || exit 1
       displayName: 'Push new image'
 
     - script: |
