@@ -8,55 +8,105 @@ variables:
   - group: azure.variables
   - group: sag.variables
   - group: environment.variables
+  - group: build.variables
 
-steps:
+stages:
 
-- script: |
-    az login --service-principal -u ${AZ_SP_ID} -p ${AZ_SP_SECRET} --tenant ${AZ_TENANT_ID}
-  displayName: 'Login to Azure with service principal'
-  env:
-    AZ_SP_SECRET: $(AZ_SP_SECRET)
+- stage: Build
+  condition: or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'BatchedCI'))
 
-- script: |
-    if [ "${AZ_SANDBOX_MODE}" = "true" ]; then
-      AKS_RESOURCE_GROUP=$(az group list --query "[0].name" --output tsv)
-      echo "##vso[task.setvariable variable=AKS_RESOURCE_GROUP]${AKS_RESOURCE_GROUP}"
-    fi
-  displayName: 'Fetch sandbox resource group'
+  jobs:
 
-- script: |
-    az aks get-credentials --resource-group ${AKS_RESOURCE_GROUP} --name ${AKS_CLUSTER_NAME} --overwrite-existing
-  displayName: 'Fetch kube config'
+  - job: BuildImage
 
-- script: |
-    kubectl apply -f ./resources/kubernetes/cm-msr-personnes.yaml
-  displayName: 'Apply properties config map'
+    steps:
 
-- script: |
-    kubectl apply -f ./resources/kubernetes/service-msr-personnes.yaml
-  displayName: 'Apply service'
+    - script: |
+        docker build -t "${IMAGE_TAG_BASE}:${IMAGE_MAJOR_VERSION}.${IMAGE_MINOR_VERSION}.${BUILD_BUILDID}" .
+        echo "##vso[task.setvariable variable=AKS_RESOURCE_GROUP]${AKS_RESOURCE_GROUP}"
+      displayName: "Build new image"
 
-- script: |
-    kubectl apply -f ./resources/kubernetes/deploy-msr-personnes.yaml
-  displayName: 'Apply deployment'
+    - script: |
+        docker tag "${IMAGE_TAG_BASE}:${IMAGE_MAJOR_VERSION}.${IMAGE_MINOR_VERSION}.${BUILD_BUILDID}" "${IMAGE_TAG_BASE}:latest"
+      displayName: "Apply latest tag to new image"
 
-- script: |
-    kubectl rollout status deployment msr-personnes --timeout=5m 
-  displayName: 'Wait for end of deployment'
+  - job: PushImage
 
-- script: |
-    PODS=$(kubectl get pods --selector=app=msr-personnes -o jsonpath='{.items[*].metadata.name}')
-    for POD in $PODS; do
-      health_json=$(kubectl exec $POD -- curl -s http://localhost:5555/health)
-      status_checks=$(jq '. | .. | .status? // empty | select(. != "UP")' "$json_file")
-      if [[ -n "$status_checks" ]]; then
-        echo "Error: One or more resources in $POD are not 'UP'."
-        exit 1
-      fi
-      jdbc_state_checks=$(jq '.Adapters.JDBCAdapter.Connections[] | select(.state == "suspended")' "$json_file")
-      if [[ -n "$jdbc_state_checks" ]]; then
-        echo "Error: One or more JDBC Adapter connections in $POD are suspended."
-        exit 1
-      fi
-    done
-  displayName: 'Check health of pods'
+    steps:
+
+    - script: |
+        docker login -u "${DOCKER_REGISTRY_ID}" -p "${DOCKER_REGISTRY_SECRET}" "${DOCKER_REGISTRY_URI}"
+      displayName: 'Login to image registry'
+      env:
+        DOCKER_REGISTRY_SECRET: $(DOCKER_REGISTRY_SECRET)
+
+    - script: |
+        docker push "${IMAGE_TAG_BASE}:${IMAGE_MAJOR_VERSION}.${IMAGE_MINOR_VERSION}.${BUILD_BUILDID}"
+      displayName: 'Push new image'
+
+    - script: |
+        docker push "${IMAGE_TAG_BASE}:latest"
+      displayName: 'Push new image (latest)'
+
+
+- stage: Deploy
+  dependsOn: Build
+
+  jobs:
+
+  - job: DeployKubernetes
+
+    steps:
+
+    - script: |
+        az login --service-principal -u ${AZ_SP_ID} -p ${AZ_SP_SECRET} --tenant ${AZ_TENANT_ID}
+      displayName: 'Login to Azure with service principal'
+      env:
+        AZ_SP_SECRET: $(AZ_SP_SECRET)
+
+    - script: |
+        if [ "${AZ_SANDBOX_MODE}" = "true" ]; then
+          AKS_RESOURCE_GROUP=$(az group list --query "[0].name" --output tsv)
+          echo "##vso[task.setvariable variable=AKS_RESOURCE_GROUP]${AKS_RESOURCE_GROUP}"
+        fi
+      displayName: 'Fetch sandbox resource group'
+
+    - script: |
+        az aks get-credentials --resource-group ${AKS_RESOURCE_GROUP} --name ${AKS_CLUSTER_NAME} --overwrite-existing
+      displayName: 'Fetch kube config'
+
+    - script: |
+        kubectl apply -f ./resources/kubernetes/cm-msr-personnes.yaml
+      displayName: 'Apply properties config map'
+
+    - script: |
+        kubectl apply -f ./resources/kubernetes/service-msr-personnes.yaml
+      displayName: 'Apply service'
+
+    - script: |
+        output=$(kubectl apply -f ./resources/kubernetes/deploy-msr-personnes.yaml)
+        if [[ $output == *"unchanged"* ]]; then
+          kubectl rollout restart deployment msr-personnes
+        fi
+      displayName: 'Apply deployment'
+
+    - script: |
+        kubectl rollout status deployment msr-personnes --timeout=5m 
+      displayName: 'Wait for end of deployment'
+
+    - script: |
+        PODS=$(kubectl get pods --selector=app=msr-personnes -o jsonpath='{.items[*].metadata.name}')
+        for POD in $PODS; do
+          health_json=$(kubectl exec $POD -- curl -s http://localhost:5555/health)
+          status_checks=$(jq '. | .. | .status? // empty | select(. != "UP")' "$json_file")
+          if [[ -n "$status_checks" ]]; then
+            echo "Error: One or more resources in $POD are not 'UP'."
+            exit 1
+          fi
+          jdbc_state_checks=$(jq '.Adapters.JDBCAdapter.Connections[] | select(.state == "suspended")' "$json_file")
+          if [[ -n "$jdbc_state_checks" ]]; then
+            echo "Error: One or more JDBC Adapter connections in $POD are suspended."
+            exit 1
+          fi
+        done
+      displayName: 'Check health of pods'
