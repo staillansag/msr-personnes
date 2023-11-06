@@ -1,0 +1,49 @@
+trigger: none
+
+pool:
+  name: Default
+
+variables:
+  - group: aks.variables
+  - group: azure.variables
+  - group: sag.variables
+  - group: environment.variables
+
+steps:
+
+- script: chmod u+x ./aks/*.sh
+  displayName: "Grant shell execution permissions"
+
+- script: |
+    az login --service-principal -u ${AZ_SP_ID} -p ${AZ_SP_SECRET} --tenant ${AZ_TENANT_ID}
+  displayName: 'Login to Azure with service principal'
+  env:
+    AZ_SP_SECRET: $(AZ_SP_SECRET)
+
+- script: |
+    if [ "${AZ_SANDBOX_MODE}" = "true" ]; then
+      AKS_RESOURCE_GROUP=$(az group list --query "[0].name" --output tsv)
+      echo "##vso[task.setvariable variable=AKS_RESOURCE_GROUP]${AKS_RESOURCE_GROUP}"
+    fi
+  displayName: 'Fetch sandbox resource group'
+
+- script: |
+    az aks get-credentials --resource-group ${AKS_RESOURCE_GROUP} --name ${AKS_CLUSTER_NAME} --overwrite-existing
+  displayName: 'Fetch kube config'
+
+- script: |
+    kubectl apply -f ./resources/kubernetes/cm-msr-personnes.yaml
+  displayName: 'Apply properties config map'
+
+- script: |
+    kubectl apply -f ./resources/kubernetes/service-msr-personnes.yaml
+  displayName: 'Apply service'
+
+- script: |
+    kubectl apply -f ./resources/kubernetes/deploy-msr-personnes.yaml
+  displayName: 'Apply deployment'
+
+- script: |
+    kubectl rollout status deployment msr-personnes --timeout=5m 
+  displayName: 'Wait for end of deployment'
+
