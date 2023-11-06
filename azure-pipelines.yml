@@ -13,6 +13,10 @@ variables:
 stages:
 
 - stage: Build
+  condition: or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'BatchedCI'))
+
+  variables:
+  - group: build.variables
 
   jobs:
 
