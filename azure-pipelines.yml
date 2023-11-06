@@ -51,7 +51,7 @@ stages:
 
 - stage: Deploy
   dependsOn: Build
-  condition: succeededOrSkipped()
+  condition: or(succeeded(), eq(dependencies.Build.result, 'skipped'))
 
   jobs:
 
