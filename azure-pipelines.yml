@@ -7,7 +7,7 @@ variables:
   - group: sag.variables
   - group: environment.variables
   - group: personnes.variables
-
+ 
 stages:
 
 - stage: Build
