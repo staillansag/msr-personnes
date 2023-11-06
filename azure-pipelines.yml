@@ -11,9 +11,6 @@ variables:
 
 steps:
 
-- script: chmod u+x ./aks/*.sh
-  displayName: "Grant shell execution permissions"
-
 - script: |
     az login --service-principal -u ${AZ_SP_ID} -p ${AZ_SP_SECRET} --tenant ${AZ_TENANT_ID}
   displayName: 'Login to Azure with service principal'
