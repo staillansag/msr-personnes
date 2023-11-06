@@ -86,6 +86,7 @@ stages:
 
     - script: |
         output=$(kubectl apply -f ./resources/kubernetes/deploy-msr-personnes.yaml)
+        echo $output
         if [[ $output == *"unchanged"* ]]; then
           kubectl rollout restart deployment msr-personnes
         fi
