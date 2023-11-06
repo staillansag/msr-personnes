@@ -23,7 +23,7 @@ stages:
     - name: MINOR
       value: $[variables['IMAGE_MINOR_VERSION']]
     - name: PATCH
-      value: $[counter(concat(variables['MAJOR'], '.', variables['MINOR']), 1)]
+      value: $[counter(variables['MAJOR'] + '.' + variables['MINOR'], 1)]
     - name: VERSION
       value: $(MAJOR).$(MINOR).$(PATCH)
 
