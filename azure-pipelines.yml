@@ -44,3 +44,19 @@ steps:
     kubectl rollout status deployment msr-personnes --timeout=5m 
   displayName: 'Wait for end of deployment'
 
+- script: |
+    PODS=$(kubectl get pods --selector=app=msr-personnes -o jsonpath='{.items[*].metadata.name}')
+    for POD in $PODS; do
+      health_json=$(kubectl exec $POD -- curl -s http://localhost:5555/health)
+      status_checks=$(jq '. | .. | .status? // empty | select(. != "UP")' "$json_file")
+      if [[ -n "$status_checks" ]]; then
+        echo "Error: One or more resources in $POD are not 'UP'."
+        exit 1
+      fi
+      jdbc_state_checks=$(jq '.Adapters.JDBCAdapter.Connections[] | select(.state == "suspended")' "$json_file")
+      if [[ -n "$jdbc_state_checks" ]]; then
+        echo "Error: One or more JDBC Adapter connections in $POD are suspended."
+        exit 1
+      fi
+    done
+  displayName: 'Check health of pods'
