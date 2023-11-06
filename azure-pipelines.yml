@@ -51,6 +51,7 @@ stages:
 
 - stage: Deploy
   dependsOn: Build
+  condition: succeededOrSkipped()
 
   jobs:
 
