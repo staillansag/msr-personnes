@@ -17,15 +17,21 @@ stages:
 
   - job: BuildImage
 
+    variables:
+      MAJOR: ${IMAGE_MAJOR_VERSION}
+      MINOR: ${IMAGE_MINOR_VERSION}
+      PATCH: $[counter(variables['MAJOR.MINOR'], 1)]
+      VERSION: $(MAJOR).$(MINOR).$(PATCH)
+
     steps:
 
     - script: |
-        docker build -t "${IMAGE_TAG_BASE}:${IMAGE_MAJOR_VERSION}.${IMAGE_MINOR_VERSION}.${BUILD_BUILDID}" .
+        docker build -t "${IMAGE_TAG_BASE}:${VERSION}" .
         echo "##vso[task.setvariable variable=AKS_RESOURCE_GROUP]${AKS_RESOURCE_GROUP}"
       displayName: "Build new image"
 
     - script: |
-        docker tag "${IMAGE_TAG_BASE}:${IMAGE_MAJOR_VERSION}.${IMAGE_MINOR_VERSION}.${BUILD_BUILDID}" "${IMAGE_TAG_BASE}:latest"
+        docker tag "${IMAGE_TAG_BASE}:${VERSION}" "${IMAGE_TAG_BASE}:latest" 
       displayName: "Apply latest tag to new image"
 
   - job: PushImage
@@ -39,7 +45,7 @@ stages:
         DOCKER_REGISTRY_SECRET: $(DOCKER_REGISTRY_SECRET)
 
     - script: |
-        docker push "${IMAGE_TAG_BASE}:${IMAGE_MAJOR_VERSION}.${IMAGE_MINOR_VERSION}.${BUILD_BUILDID}"
+        docker push "${IMAGE_TAG_BASE}:${VERSION}"
       displayName: 'Push new image'
 
     - script: |
