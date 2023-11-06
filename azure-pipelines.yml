@@ -22,10 +22,12 @@ stages:
       value: $[variables['IMAGE_MAJOR_VERSION']]
     - name: MINOR
       value: $[variables['IMAGE_MINOR_VERSION']]
+    - name: VERSION_PREFIX
+      value: $(MAJOR).$(MINOR)
     - name: PATCH
-      value: $[counter(variables['MAJOR'] + '.' + variables['MINOR'], 1)]
+      value: $[counter(variables['VERSION_PREFIX'], 1)]
     - name: VERSION
-      value: $(MAJOR).$(MINOR).$(PATCH)
+      value: $(VERSION_PREFIX).$(PATCH)
 
     steps:
 
