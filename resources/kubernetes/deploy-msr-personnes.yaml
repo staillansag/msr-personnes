@@ -47,7 +47,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: DEPLOYMENT_ID
-              value: MICROSERVICE_DEPLOYMENT_ID
+              value: "MICROSERVICE_DEPLOYMENT_ID"
           volumeMounts:
             - name: microservicesruntime-license
               mountPath: /opt/softwareag/IntegrationServer/config/licenseKey.xml
