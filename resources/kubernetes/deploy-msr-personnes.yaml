@@ -2,8 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: dce-msr-personnes
-  name: dce-msr-personnes
+    app: msr-personnes
+  name: msr-personnes
 spec:
   replicas: 1
   strategy:
@@ -14,16 +14,16 @@ spec:
   minReadySeconds: 0
   selector:
     matchLabels:
-      app: dce-msr-personnes
+      app: msr-personnes
   template:
     metadata:
       annotations:
         prometheus.io/scrape: "true"
       labels:
-        app: dce-msr-personnes
+        app: msr-personnes
     spec:
       containers:
-        - image: 131539360861.dkr.ecr.eu-west-1.amazonaws.com/dce-msr-personnes:latest
+        - image: staillansag/msr-personnes:latest
           imagePullPolicy: Always
           name: msr
           ports:
@@ -36,6 +36,11 @@ spec:
             - containerPort: 5555
               name: http
               protocol: TCP
+            - containerPort: 5555
+              name: metrics
+          envFrom:
+            - configMapRef:
+                name: environment-config
           env:
             - name: SERVER
               valueFrom:
@@ -49,10 +54,6 @@ spec:
             - name: application-properties
               mountPath: /opt/softwareag/IntegrationServer/application.properties
               subPath:   application.properties
-              readOnly:  true
-            - name: aws-emr-config
-              mountPath: /opt/softwareag/IntegrationServer/packages/dcePersonnes/ns/dcePersonnes/aws/dcePersonnes_aws_emr/node.ndf
-              subPath:   node.idf
               readOnly:  true
             - name: secrets
               mountPath: /etc/secrets
@@ -77,8 +78,6 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 5
             failureThreshold: 18
-      imagePullSecrets:
-      - name: ecrregcred
       volumes:
         - name: secrets
           secret:
@@ -92,13 +91,8 @@ spec:
               path: licenseKey.xml
         - name: application-properties
           configMap:
-            name: dce-msr-personnes
+            name: msr-personnes
             items:
             - key:  application.properties
               path: application.properties
-        - name: aws-emr-config
-          configMap:
-            name: dce-msr-personnes
-            items:
-            - key:  node.idf
-              path: node.idf
+
