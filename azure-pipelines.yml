@@ -8,15 +8,12 @@ variables:
   - group: azure.variables
   - group: sag.variables
   - group: environment.variables
-  - group: build.variables
+  - group: personnes.variables
 
 stages:
 
 - stage: Build
   condition: or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'BatchedCI'))
-
-  variables:
-  - group: build.variables
 
   jobs:
 
