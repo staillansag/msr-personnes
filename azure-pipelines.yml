@@ -85,11 +85,7 @@ stages:
       displayName: 'Apply service'
 
     - script: |
-        output=$(kubectl apply -f ./resources/kubernetes/deploy-msr-personnes.yaml)
-        echo $output
-        if [[ $output == *"unchanged"* ]]; then
-          kubectl rollout restart deployment msr-personnes
-        fi
+        sed 's/MICROSERVICE_DEPLOYMENT_ID/'${BUILD_BUILDID}'/g' ./resources/kubernetes/deploy-msr-personnes.yaml | kubectl apply -f -
       displayName: 'Apply deployment'
 
     - script: |
