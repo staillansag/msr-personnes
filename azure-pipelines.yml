@@ -179,6 +179,6 @@ stages:
           echo "ERROR --- SFTP file ${ID_DEMANDE}.zip could not be fetched"
           exit 1
         fi
-      displayName: 'Check zip file in s3'
+      displayName: 'Check zip file in SFTP server'
       env:
         SFTP_PASSWORD: $(SFTP_PASSWORD)
