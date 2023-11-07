@@ -5,6 +5,7 @@ variables:
   - group: aks.variables
   - group: azure.variables
   - group: personnes.variables
+  - group: environment.variables
   - group: sag.variables
  
 stages:
