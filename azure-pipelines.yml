@@ -99,17 +99,23 @@ stages:
       displayName: 'Wait for end of deployment'
 
     - script: |
-        PODS=$(kubectl get pods --selector=app=msr-personnes -o jsonpath='{.items[*].metadata.name}')
+        sleep 30
+        PODS=$(kubectl get pods --selector=app=msr-frontend -o jsonpath='{.items[*].metadata.name}')
         for POD in $PODS; do
           health_json=$(kubectl exec $POD -- curl -s http://localhost:5555/health)
-          status_checks=$(jq '. | .. | .status? // empty | select(. != "UP")' "$json_file")
-          if [[ -n "$status_checks" ]]; then
-            echo "Error: One or more resources in $POD are not 'UP'."
-            exit 1
+          if [ -z "${health_json}" ]; then
+            echo "Empty response to http://localhost:5555/health for pod ${POD}" && exit 1
+          else
+            echo "Health status for pod ${POD}"
+            echo ${health_json}
           fi
-          jdbc_state_checks=$(jq '.Adapters.JDBCAdapter.Connections[] | select(.state == "suspended")' "$json_file")
+          status_checks=$(echo "$health_json" | jq '. | .. | .status? // empty | select(. != "UP")')
+          if [[ -n "$status_checks" ]]; then
+            echo "Error: One or more resources in $POD are not 'UP'" && exit 1
+          fi
+          jdbc_state_checks=$(echo "$health_json" | jq '.Adapters.JDBCAdapter.Connections[] | select(.state == "suspended")')
           if [[ -n "$jdbc_state_checks" ]]; then
-            echo "Error: One or more JDBC Adapter connections in $POD are suspended."
+            echo "Error: One or more JDBC Adapter connections in $POD are suspended"
             exit 1
           fi
         done
@@ -120,24 +126,42 @@ stages:
 
   jobs:
 
-  - job: TestAPI
+  - job: TestE2E
 
     steps:
 
     - script: |
-        AUTH_HEADER=$(echo "Administrator:${SAG_MSR_ADMIN_PASSWORD}" | base64)
+        AUTH_HEADER=$(echo -n "Administrator:${SAG_MSR_ADMIN_PASSWORD}" | base64)
         echo "##vso[task.setvariable variable=AUTH_HEADER]${AUTH_HEADER}"
       displayName: 'Set basic auth header'
       env:
-        AZ_SP_SECRET: $(SAG_MSR_ADMIN_PASSWORD)
+        SAG_MSR_ADMIN_PASSWORD: $(SAG_MSR_ADMIN_PASSWORD)
 
     - script: |
-        ID_DEMANDE=$(curl -s --location --request POST 'https://msr-frontend.sttlab.eu/personnesAPI/personnes/demande-zip' \
-          --header 'Authorization: Basic '${AUTH_HEADER} | jq -r '.idDemande')
-        REGEX='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
-        if [[ $variable =~ $regex ]]; then
-          echo "POST /personnes/demande-zip -->  OK"
-        else
-          echo "POST /personnes/demande-zip --> ERROR (Invalid idDemande in response: ${ID_DEMANDE})"
+        RESPONSE=$(curl -s --location --request POST 'https://msr-frontend.sttlab.eu/personnesAPI/personnes/demande-zip' \
+          --header 'Authorization: Basic '${AUTH_HEADER})
+        echo "POST /personnes/demande-zip response:"
+        echo "${RESPONSE}"
+        ID_DEMANDE=$(echo "${RESPONSE}" | jq -r '.idDemande')
+        if [ -z "${ID_DEMANDE}" ]; then
+          echo "POST /personnes/demande-zip --> ERROR (Invalid idDemande in response: ${ID_DEMANDE})" && exit 1
         fi
-      displayName: 'POST /personnes/demande-zip'
+        echo "##vso[task.setvariable variable=ID_DEMANDE]${ID_DEMANDE}"
+      displayName: 'POST /personnes/demande-zip'   
+
+    - script: |
+        sleep 60
+      displayName: 'Wait for E2E integration to finish'   
+
+    - script: |
+        export AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY}
+        export AWS_SECRET_ACCESS_KEY=${S3_ACCESS_SECRET}
+        export AWS_DEFAULT_REGION=${S3_REGION}   
+        aws s3 ls s3://${S3_BUCKET_NAME}/${S3_FOLDER}/${ID_DEMANDE}.zip \
+          --region ${S3_REGION} \
+          && echo "File ${ID_DEMANDE}.zip fetched" \
+          || { echo "Could not fetch ${ID_DEMANDE}.zip file"; exit 1 }
+      displayName: 'Check zip file in s3'
+      env:
+        S3_ACCESS_KEY: $(S3_ACCESS_KEY)
+        S3_ACCESS_SECRET: $(S3_ACCESS_SECRET)
