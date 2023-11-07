@@ -5,6 +5,7 @@ variables:
   - group: aks.variables
   - group: azure.variables
   - group: personnes.variables
+  - group: sag.variables
  
 stages:
 
@@ -113,3 +114,30 @@ stages:
           fi
         done
       displayName: 'Check health of pods'
+
+- stage: Test
+  dependsOn: Deploy
+
+  jobs:
+
+  - job: TestAPI
+
+    steps:
+
+    - script: |
+        AUTH_HEADER=$(echo "Administrator:${SAG_MSR_ADMIN_PASSWORD}" | base64)
+        echo "##vso[task.setvariable variable=AUTH_HEADER]${AUTH_HEADER}"
+      displayName: 'Set basic auth header'
+      env:
+        AZ_SP_SECRET: $(SAG_MSR_ADMIN_PASSWORD)
+
+    - script: |
+        ID_DEMANDE=$(curl -s --location --request POST 'https://msr-frontend.sttlab.eu/personnesAPI/personnes/demande-zip' \
+          --header 'Authorization: Basic '${AUTH_HEADER} | jq -r '.idDemande')
+        REGEX='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+        if [[ $variable =~ $regex ]]; then
+          echo "POST /personnes/demande-zip -->  OK"
+        else
+          echo "POST /personnes/demande-zip --> ERROR (Invalid idDemande in response: ${ID_DEMANDE})"
+        fi
+      displayName: 'POST /personnes/demande-zip'
