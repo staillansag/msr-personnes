@@ -145,7 +145,7 @@ stages:
         echo "${RESPONSE}"
         ID_DEMANDE=$(echo "${RESPONSE}" | jq -r '.idDemande')
         if [ -z "${ID_DEMANDE}" ]; then
-          echo "POST /personnes/demande-zip --> ERROR (Invalid idDemande in response: ${ID_DEMANDE})" && exit 1
+          echo "ERROR --- POST /personnes/demande-zip --> Invalid idDemande in response: ${ID_DEMANDE}" && exit 1
         fi
         echo "##vso[task.setvariable variable=ID_DEMANDE]${ID_DEMANDE}"
       displayName: 'POST /personnes/demande-zip'   
@@ -159,12 +159,26 @@ stages:
         export AWS_SECRET_ACCESS_KEY=${S3_ACCESS_SECRET}
         export AWS_DEFAULT_REGION=${S3_REGION}   
         if aws s3 ls s3://${S3_BUCKET_NAME}/${S3_FOLDER}/${ID_DEMANDE}.zip --region ${S3_REGION}; then
-          echo "File ${ID_DEMANDE}.zip fetched"
+          echo "S3 file ${ID_DEMANDE}.zip fetched"
         else
-          echo "Could not fetch ${ID_DEMANDE}.zip file"
+          echo "ERROR --- S3 file ${ID_DEMANDE}.zip could not be fetched"
           exit 1
         fi
       displayName: 'Check zip file in s3'
       env:
         S3_ACCESS_KEY: $(S3_ACCESS_KEY)
         S3_ACCESS_SECRET: $(S3_ACCESS_SECRET)
+
+    - script: |
+        sshpass -p "${SFTP_PASSWORD}" sftp -oPort=${SFTP_PORT} -oStrictHostKeyChecking=no -oBatchMode=no -b - "${SFTP_USER_NAME}@${SFTP_SERVER_NAME}" <<EOF
+        ls "${SFTP_FOLDER}/${ID_DEMANDE}.zip"
+        EOF
+        if [ $? -eq 0 ]; then
+          echo "SFTP file ${ID_DEMANDE}.zip fetched"
+        else
+          echo "ERROR --- SFTP file ${ID_DEMANDE}.zip could not be fetched"
+          exit 1
+        fi
+      displayName: 'Check zip file in s3'
+      env:
+        SFTP_PASSWORD: $(SFTP_PASSWORD)
