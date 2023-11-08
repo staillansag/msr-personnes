@@ -70,7 +70,7 @@ spec:
             tcpSocket:
               port: 5555
             failureThreshold: 3
-            initialDelaySeconds: 120
+            initialDelaySeconds: 180
             periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 1
@@ -79,7 +79,7 @@ spec:
               port: 5555
             initialDelaySeconds: 30
             periodSeconds: 5
-            failureThreshold: 18
+            failureThreshold: 30
       volumes:
         - name: secrets
           secret:
