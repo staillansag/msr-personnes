@@ -89,7 +89,7 @@ spec:
             secretName: licenses
             defaultMode: 0666
             items:
-            - key:  msr-license
+            - key:  msr11-license
               path: licenseKey.xml
         - name: application-properties
           configMap:

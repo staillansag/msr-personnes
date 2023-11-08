@@ -60,6 +60,8 @@
       <value name="startupBackoffSecs">10</value>
       <value name="timeoutType">none</value>
     </record>
+    <array name="formattableFields" type="value" depth="1">
+    </array>
     <value name="connectionEnabled">true</value>
   </record>
 </Values>
