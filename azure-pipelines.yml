@@ -151,7 +151,7 @@ stages:
       displayName: 'POST /personnes/demande-zip'   
 
     - script: |
-        sleep 60
+        sleep 120
       displayName: 'Wait for E2E integration to finish'   
 
     - script: |
