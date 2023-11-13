@@ -4,6 +4,7 @@ pool:
 variables:
   - group: aks.variables
   - group: azure.variables
+  - group: frontend.variables
   - group: personnes.variables
   - group: environment.variables
   - group: sag.variables
@@ -138,17 +139,26 @@ stages:
       env:
         SAG_MSR_ADMIN_PASSWORD: $(SAG_MSR_ADMIN_PASSWORD)
 
+# Note: basic auth isn't used if the microgateway is deployed, but we keep it here as a convenience to simplify the code
     - script: |
-        RESPONSE=$(curl -s --location --request POST 'https://msr-frontend.sttlab.eu/personnesAPI/personnes/demande-zip' \
-          --header 'Authorization: Basic '${AUTH_HEADER})
+        if [ "${DEPLOY_MICROGATEWAY}" = "true" ]; then
+            URL='https://msr-frontend.sttlab.eu/gateway/personnesAPI/1.0/personnes/demande-zip'
+        else
+            URL='https://msr-frontend.sttlab.eu/personnesAPI/personnes/demande-zip'
+        fi
+        RESPONSE=$(curl -s --location --request POST ${URL} \
+          --header 'Authorization: Basic '${AUTH_HEADER} \
+          --header 'x-gateway-apikey: '${API_KEY})
+        echo "API root URL: ${URL}"
         echo "POST /personnes/demande-zip response:"
         echo "${RESPONSE}"
         ID_DEMANDE=$(echo "${RESPONSE}" | jq -r '.idDemande')
-        if [ -z "${ID_DEMANDE}" ]; then
-          echo "ERROR --- POST /personnes/demande-zip --> Invalid idDemande in response: ${ID_DEMANDE}" && exit 1
+        if [ "${ID_DEMANDE}" = "null" ] || [ -z "${ID_DEMANDE}" ]; then
+          echo "POST /personnes/demande-zip --> ERROR (Invalid idDemande in response: ${ID_DEMANDE})" && exit 1
         fi
-        echo "##vso[task.setvariable variable=ID_DEMANDE]${ID_DEMANDE}"
-      displayName: 'POST /personnes/demande-zip'   
+      displayName: 'POST /personnes/demande-zip'    
+      env:
+        API_KEY: $(API_KEY)
 
     - script: |
         sleep 120
