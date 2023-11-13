@@ -102,7 +102,7 @@ stages:
 
     - script: |
         sleep 30
-        PODS=$(kubectl get pods --selector=app=msr-frontend -o jsonpath='{.items[*].metadata.name}')
+        PODS=$(kubectl get pods --selector=app=msr-personnes -o jsonpath='{.items[*].metadata.name}')
         for POD in $PODS; do
           health_json=$(kubectl exec $POD --container msr -- curl -s http://localhost:5555/health)
           if [ -z "${health_json}" ]; then
@@ -156,6 +156,7 @@ stages:
         if [ "${ID_DEMANDE}" = "null" ] || [ -z "${ID_DEMANDE}" ]; then
           echo "POST /personnes/demande-zip --> ERROR (Invalid idDemande in response: ${ID_DEMANDE})" && exit 1
         fi
+        echo "##vso[task.setvariable variable=ID_DEMANDE]${ID_DEMANDE}"
       displayName: 'POST /personnes/demande-zip'    
       env:
         API_KEY: $(API_KEY)
