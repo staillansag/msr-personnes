@@ -21,7 +21,7 @@ data:
     jms.DEFAULT_IS_JMS_CONNECTION.csqSize=0
     jms.DEFAULT_IS_JMS_CONNECTION.jndi_jndiAliasName=DEFAULT_IS_JNDI_PROVIDER
     jms.DEFAULT_IS_JMS_CONNECTION.jndi_automaticallyCreateUMAdminObjects=true
-    jms.DEFAULT_IS_JMS_CONNECTION.producerMaxRetryAttempts=30
+    jms.DEFAULT_IS_JMS_CONNECTION.producerMaxRetryAttempts=60
     jms.DEFAULT_IS_JMS_CONNECTION.producerRetryInterval=1000
 
     sftpserver.sftp.hostName=$env{SFTP_SERVER_NAME}
