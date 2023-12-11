@@ -1,4 +1,4 @@
-FROM staillansag/msr-dce-dev:10.15.7
+FROM staillansag/msr-dce-dev:11.0.0
 
 EXPOSE 5555
 EXPOSE 5543
